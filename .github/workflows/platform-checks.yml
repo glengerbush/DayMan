@@ -85,7 +85,7 @@ jobs:
 
           app_resources="${derived_data}/Build/Products/Debug/DayMan.app/Contents/Resources"
           widget_resources="${derived_data}/Build/Products/Debug/DayMan.app/Contents/PlugIns/DayManWidget.appex/Contents/Resources"
-          test_resources="${derived_data}/Build/Products/Debug/DayManTests.xctest/Contents/Resources"
+          test_resources="${derived_data}/Build/Products/Debug/DayMan.app/Contents/PlugIns/DayManTests.xctest/Contents/Resources"
 
           test -f "${app_resources}/Web/index.html"
           test -f "${app_resources}/Assets.car"
