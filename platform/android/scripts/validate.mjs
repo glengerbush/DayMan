@@ -24,6 +24,9 @@ const config = JSON.parse(await readFile(join(root, "capacitor.config.json"), "u
 if (config.appId !== "com.glengerbush.dayman" || config.webDir !== "www") {
   throw new Error("Capacitor identity or webDir does not match the Android shell");
 }
+if (config.plugins?.SystemBars?.insetsHandling !== "css") {
+  throw new Error("Capacitor must expose Android system-bar insets to CSS");
+}
 
 const manifest = await readFile(
   join(root, "android/app/src/main/AndroidManifest.xml"),
@@ -52,6 +55,9 @@ const activity = await readFile(
 );
 if (!activity.includes('"DayManAndroid"') || !activity.includes("addJavascriptInterface")) {
   throw new Error("MainActivity does not expose window.DayManAndroid");
+}
+if (!activity.includes("override fun onResume()") || !activity.includes("refreshNow")) {
+  throw new Error("MainActivity does not refresh widgets when the app resumes");
 }
 
 const snapshotCodec = await readFile(
@@ -95,6 +101,17 @@ const renderer = await readFile(
 );
 if (renderer.includes("currentTime") || renderer.includes("minuteHand")) {
   throw new Error("Widget renderer must not imply an unsupported live minute hand");
+}
+for (const marker of [
+  "drawHourTicksAndLabels",
+  '"Rise $sunrise  •  Set $sunset"',
+]) {
+  if (!renderer.includes(marker)) {
+    throw new Error(`Widget rendering support is missing ${marker}`);
+  }
+}
+if (!widget.includes("moon-nearside.webp")) {
+  throw new Error("Widget does not load the shared near-side Moon texture");
 }
 
 const fixturesDirectory = join(repositoryRoot, "fixtures/clock-snapshots");

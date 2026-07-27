@@ -116,6 +116,8 @@ fi
 grep -Fq 'daymanState' "${REPOSITORY_ROOT}/src/lib/platform-bridge.ts"
 grep -Fq 'snapshots: ClockSnapshot[]' "${REPOSITORY_ROOT}/src/lib/platform-bridge.ts"
 grep -Fq 'daymanState' "${MACOS_ROOT}/DayManApp/NativeBridge.swift"
+grep -Fq 'setURLSchemeHandler' "${MACOS_ROOT}/DayManApp/DayManWebView.swift"
+grep -Fq 'dayman-app' "${MACOS_ROOT}/DayManApp/BundledWebSchemeHandler.swift"
 grep -Fq 'let snapshots: [ClockSnapshot]' "${MACOS_ROOT}/Shared/ClockModels.swift"
 
 echo "macOS static validation passed (${fixture_count} shared fixtures)."

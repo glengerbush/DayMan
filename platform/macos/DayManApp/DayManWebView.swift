@@ -34,6 +34,7 @@ struct DayManWebView: NSViewRepresentable {
         configuration.userContentController = controller
         configuration.websiteDataStore = .default()
         configuration.preferences.isElementFullscreenEnabled = true
+        context.coordinator.prepareBundledApplication(configuration: configuration)
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
@@ -53,13 +54,14 @@ struct DayManWebView: NSViewRepresentable {
     final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         private var loadError: Binding<String?>
         private let bridge = NativeBridge()
-        private var webRoot: URL?
+        private var schemeHandler: BundledWebSchemeHandler?
+        private var applicationURL: URL?
 
         init(loadError: Binding<String?>) {
             self.loadError = loadError
         }
 
-        func loadApplication(in webView: WKWebView) {
+        func prepareBundledApplication(configuration: WKWebViewConfiguration) {
             guard
                 let root = Bundle.main.resourceURL?.appendingPathComponent("Web", isDirectory: true),
                 FileManager.default.fileExists(atPath: root.appendingPathComponent("index.html").path)
@@ -69,11 +71,15 @@ struct DayManWebView: NSViewRepresentable {
                 return
             }
 
-            webRoot = root
-            webView.loadFileURL(
-                root.appendingPathComponent("index.html"),
-                allowingReadAccessTo: root
-            )
+            let handler = BundledWebSchemeHandler(rootURL: root)
+            schemeHandler = handler
+            configuration.setURLSchemeHandler(handler, forURLScheme: BundledWebSchemeHandler.scheme)
+            applicationURL = URL(string: "\(BundledWebSchemeHandler.scheme)://app/index.html")
+        }
+
+        func loadApplication(in webView: WKWebView) {
+            guard let applicationURL else { return }
+            webView.load(URLRequest(url: applicationURL))
         }
 
         func userContentController(
@@ -100,7 +106,7 @@ struct DayManWebView: NSViewRepresentable {
                 return
             }
 
-            if url.isFileURL, isInsideBundle(url) {
+            if url.scheme == BundledWebSchemeHandler.scheme, url.host == "app" {
                 decisionHandler(.allow)
                 return
             }
@@ -126,13 +132,6 @@ struct DayManWebView: NSViewRepresentable {
             withError error: Error
         ) {
             loadError.wrappedValue = error.localizedDescription
-        }
-
-        private func isInsideBundle(_ url: URL) -> Bool {
-            guard let webRoot else { return false }
-            return url.standardizedFileURL.path.hasPrefix(
-                webRoot.standardizedFileURL.path + "/"
-            ) || url.standardizedFileURL == webRoot.standardizedFileURL
         }
 
         private func evaluateBridgeResult(

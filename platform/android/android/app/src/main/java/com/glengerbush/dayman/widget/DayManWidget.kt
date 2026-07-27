@@ -2,6 +2,7 @@ package com.glengerbush.dayman.widget
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -22,8 +23,13 @@ import kotlinx.coroutines.withContext
 class DayManWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val snapshot = WidgetStateRepository(context).load()
+        val moonTexture = withContext(Dispatchers.IO) {
+            runCatching {
+                context.assets.open("public/moon-nearside.webp").use(BitmapFactory::decodeStream)
+            }.getOrNull()
+        }
         val bitmap = withContext(Dispatchers.Default) {
-            DialRenderer.render(snapshot)
+            DialRenderer.render(snapshot, moonTexture = moonTexture)
         }
         provideContent {
             WidgetImage(

@@ -3,12 +3,17 @@ package com.glengerbush.dayman.widget
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 
@@ -23,7 +28,11 @@ object DialRenderer {
     private const val TEXT = "#F4F0E8"
     private const val MUTED = "#93A4B8"
 
-    fun render(snapshot: ClockSnapshot?, sizePx: Int = 720): Bitmap {
+    fun render(
+        snapshot: ClockSnapshot?,
+        sizePx: Int = 720,
+        moonTexture: Bitmap? = null,
+    ): Bitmap {
         val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val center = sizePx / 2f
@@ -66,7 +75,7 @@ object DialRenderer {
             paint,
         )
 
-        drawHourTicks(canvas, center, radius, sizePx, paint)
+        drawHourTicksAndLabels(canvas, center, radius, sizePx, paint)
         snapshot.event("solar-noon")?.let {
             drawEventDot(canvas, center, radius, it.minute, DAYLIGHT, sizePx, paint)
         }
@@ -78,8 +87,8 @@ object DialRenderer {
             center,
             center - sizePx * 0.07f,
             sizePx * 0.055f,
-            snapshot.moonIllumination,
             snapshot.moonPhaseAngle,
+            moonTexture,
             paint,
         )
         drawCenterText(canvas, snapshot, center, sizePx, paint)
@@ -111,7 +120,7 @@ object DialRenderer {
         }
     }
 
-    private fun drawHourTicks(
+    private fun drawHourTicksAndLabels(
         canvas: Canvas,
         center: Float,
         radius: Float,
@@ -131,6 +140,23 @@ object DialRenderer {
                 center + sin(angle).toFloat() * inner,
                 center + cos(angle).toFloat() * outer,
                 center + sin(angle).toFloat() * outer,
+                paint,
+            )
+        }
+
+        paint.style = Paint.Style.FILL
+        paint.textAlign = Paint.Align.CENTER
+        paint.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        paint.color = Color.parseColor(MUTED)
+        paint.textSize = size * 0.027f
+        val labelRadius = radius + size * 0.083f
+        val verticalCenter = -(paint.fontMetrics.ascent + paint.fontMetrics.descent) / 2f
+        for (hour in 0 until 24 step 3) {
+            val angle = hour * 2.0 * PI / 24.0 - PI / 2.0
+            canvas.drawText(
+                hour.toString().padStart(2, '0'),
+                center + cos(angle).toFloat() * labelRadius,
+                center + sin(angle).toFloat() * labelRadius + verticalCenter,
                 paint,
             )
         }
@@ -161,29 +187,71 @@ object DialRenderer {
         x: Float,
         y: Float,
         radius: Float,
-        illumination: Double,
         phaseAngle: Double,
+        texture: Bitmap?,
         paint: Paint,
     ) {
         paint.style = Paint.Style.FILL
-        paint.color = Color.parseColor("#415066")
+        paint.color = Color.parseColor("#050B14")
         canvas.drawCircle(x, y, radius, paint)
 
-        val litWidth = (radius * 2f * illumination.toFloat()).coerceIn(1f, radius * 2f)
-        val lit = if (phaseAngle <= 180.0) {
-            RectF(x + radius - litWidth, y - radius, x + radius, y + radius)
+        val phase = ((phaseAngle % 360.0) + 360.0) % 360.0
+        val terminatorRadius = max(
+            radius * 0.005f,
+            abs(cos(phase * PI / 180.0)).toFloat() * radius,
+        )
+        val waxing = phase <= 180.0
+        val outerSweep = if (waxing) 180f else -180f
+        val terminatorSweep = if (waxing) {
+            if (phase < 90.0) -180f else 180f
         } else {
-            RectF(x - radius, y - radius, x - radius + litWidth, y + radius)
+            if (phase < 270.0) -180f else 180f
         }
+
+        val litPath = Path().apply {
+            moveTo(x, y - radius)
+            arcTo(
+                RectF(x - radius, y - radius, x + radius, y + radius),
+                -90f,
+                outerSweep,
+            )
+            arcTo(
+                RectF(
+                    x - terminatorRadius,
+                    y - radius,
+                    x + terminatorRadius,
+                    y + radius,
+                ),
+                90f,
+                terminatorSweep,
+            )
+            close()
+        }
+
         canvas.save()
-        val clip = Path().apply { addCircle(x, y, radius, Path.Direction.CW) }
-        canvas.clipPath(clip)
-        paint.color = Color.parseColor(MOON)
-        canvas.drawOval(lit, paint)
-        paint.color = Color.parseColor("#AAB6BA")
-        canvas.drawCircle(x - radius * 0.27f, y - radius * 0.18f, radius * 0.15f, paint)
-        canvas.drawCircle(x + radius * 0.23f, y + radius * 0.22f, radius * 0.10f, paint)
+        canvas.clipPath(litPath)
+        if (texture != null) {
+            paint.colorFilter = ColorMatrixColorFilter(
+                ColorMatrix().apply { setSaturation(0f) },
+            )
+            canvas.drawBitmap(
+                texture,
+                Rect(0, 0, texture.width, texture.height),
+                RectF(x - radius, y - radius, x + radius, y + radius),
+                paint,
+            )
+            paint.colorFilter = null
+        } else {
+            paint.color = Color.parseColor(MOON)
+            canvas.drawCircle(x, y, radius, paint)
+        }
         canvas.restore()
+
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = radius * 0.055f
+        paint.color = Color.parseColor("#8FA0A8")
+        canvas.drawCircle(x, y, radius, paint)
+        paint.style = Paint.Style.FILL
     }
 
     private fun drawCenterText(
@@ -200,11 +268,18 @@ object DialRenderer {
         paint.textSize = size * 0.046f
         canvas.drawText(snapshot.dateKey, center, center + size * 0.025f, paint)
 
-        val next = snapshot.nextSolarEvent?.relativeLabel ?: snapshot.moonPhaseName
+        val sunrise = snapshot.event("sunrise")?.timeLabel
+        val sunset = snapshot.event("sunset")?.timeLabel
+        val schedule = when {
+            sunrise != null && sunset != null -> "Rise $sunrise  •  Set $sunset"
+            sunrise != null -> "Sunrise $sunrise"
+            sunset != null -> "Sunset $sunset"
+            else -> snapshot.moonPhaseName
+        }
         paint.typeface = Typeface.create("sans-serif", Typeface.NORMAL)
         paint.color = Color.parseColor(MUTED)
-        paint.textSize = min(size * 0.034f, size * 0.34f / next.length.coerceAtLeast(1))
-        canvas.drawText(next, center, center + size * 0.083f, paint)
+        paint.textSize = min(size * 0.031f, size * 0.52f / schedule.length.coerceAtLeast(1))
+        canvas.drawText(schedule, center, center + size * 0.083f, paint)
 
         paint.textSize = size * 0.027f
         canvas.drawText(snapshot.locationLabel.take(32), center, center + size * 0.126f, paint)

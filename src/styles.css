@@ -32,6 +32,7 @@ html {
 body {
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   background:
     radial-gradient(circle at 18% 12%, rgb(40 68 99 / 0.28), transparent 30rem),
@@ -61,9 +62,13 @@ a {
 }
 
 main {
-  width: min(100% - 2rem, 76rem);
+  width: min(100%, 78rem);
   margin: 0 auto;
-  padding-bottom: 2rem;
+  padding:
+    max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px))
+    max(1rem, env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px))
+    max(2rem, env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px))
+    max(1rem, env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
 }
 
 .app-header {
@@ -436,7 +441,16 @@ main {
 
 @media (max-width: 620px) {
   main {
-    width: min(100% - 1rem, 76rem);
+    padding-right: max(
+      0.5rem,
+      env(safe-area-inset-right, 0px),
+      var(--safe-area-inset-right, 0px)
+    );
+    padding-left: max(
+      0.5rem,
+      env(safe-area-inset-left, 0px),
+      var(--safe-area-inset-left, 0px)
+    );
   }
 
   .app-header {

@@ -11,12 +11,27 @@
   }
 
   interface DownloadOption {
+    id: ReleaseAssetKind;
     label: string;
     detail: string;
     href: string;
+    resolveFromRelease: boolean;
+  }
+
+  interface GitHubReleaseAsset {
+    name: string;
+    browser_download_url: string;
+  }
+
+  interface GitHubRelease {
+    assets: GitHubReleaseAsset[];
   }
 
   type Platform = 'android' | 'macos' | 'linux' | 'other';
+  type ReleaseAssetKind = 'android' | 'macos' | 'appimage' | 'deb' | 'rpm' | 'arch';
+  const latestReleaseUrl = 'https://github.com/glengerbush/DayMan/releases/latest';
+  const latestReleaseApiUrl =
+    'https://api.github.com/repos/glengerbush/DayMan/releases/latest';
 
   const platform = detectPlatform();
   const platformName =
@@ -27,12 +42,12 @@
         : platform === 'linux'
           ? 'Linux'
           : null;
-  const downloads = downloadOptions(platform);
-
   let installed = $state(isInstalled());
   let open = $state(false);
   let showPwaHelp = $state(false);
   let installPrompt = $state<BeforeInstallPromptEvent | null>(null);
+  let downloads = $state.raw(downloadOptions(platform));
+  let releaseLookupStarted = false;
 
   onMount(() => {
     const displayMode = window.matchMedia('(display-mode: standalone)');
@@ -97,62 +112,127 @@
 
   function downloadOptions(visitorPlatform: Platform): DownloadOption[] {
     const option = (
+      id: ReleaseAssetKind,
       label: string,
       detail: string,
       value: string | undefined
-    ): DownloadOption | null => {
-      const href = configuredUrl(value);
-      return href ? { label, detail, href } : null;
+    ): DownloadOption => {
+      const configured = configuredUrl(value);
+      return {
+        id,
+        label,
+        detail,
+        href: configured ?? latestReleaseUrl,
+        resolveFromRelease: configured === null
+      };
     };
 
     const options =
       visitorPlatform === 'android'
         ? [
             option(
+              'android',
               'Download Android app',
-              'Direct APK download',
+              'APK in the latest GitHub release',
               import.meta.env.VITE_ANDROID_APK_URL
             )
           ]
         : visitorPlatform === 'macos'
           ? [
               option(
+                'macos',
                 'Download macOS app',
-                'Direct disk image',
+                'DMG in the latest GitHub release',
                 import.meta.env.VITE_MACOS_DOWNLOAD_URL
               )
             ]
           : visitorPlatform === 'linux'
             ? [
                 option(
+                  'appimage',
                   'Download AppImage',
-                  'Portable Linux app',
+                  'Portable app in the latest release',
                   import.meta.env.VITE_LINUX_APPIMAGE_URL
                 ),
                 option(
+                  'deb',
                   'Download for Debian',
-                  'DEB package',
+                  'DEB in the latest GitHub release',
                   import.meta.env.VITE_LINUX_DEB_URL
                 ),
                 option(
+                  'rpm',
                   'Download for Fedora',
-                  'RPM package',
+                  'RPM in the latest GitHub release',
                   import.meta.env.VITE_LINUX_RPM_URL
                 ),
                 option(
+                  'arch',
                   'Download for Arch',
-                  'Arch package',
+                  'Arch package in the latest release',
                   import.meta.env.VITE_LINUX_ARCH_URL
                 )
               ]
             : [];
 
-    return options.filter((item): item is DownloadOption => item !== null);
+    return options;
+  }
+
+  function matchesAsset(kind: ReleaseAssetKind, name: string): boolean {
+    switch (kind) {
+      case 'android':
+        return /\.apk$/i.test(name);
+      case 'macos':
+        return /\.dmg$/i.test(name);
+      case 'appimage':
+        return /\.AppImage$/i.test(name);
+      case 'deb':
+        return /\.deb$/i.test(name);
+      case 'rpm':
+        return /\.rpm$/i.test(name);
+      case 'arch':
+        return /\.pkg\.tar\.zst$/i.test(name) && !/-debug-/i.test(name);
+    }
+  }
+
+  async function resolveLatestReleaseDownloads(): Promise<void> {
+    if (releaseLookupStarted || !downloads.some((download) => download.resolveFromRelease)) {
+      return;
+    }
+    releaseLookupStarted = true;
+
+    try {
+      const response = await fetch(latestReleaseApiUrl, {
+        headers: { Accept: 'application/vnd.github+json' }
+      });
+      if (!response.ok) throw new Error(`GitHub release lookup returned ${response.status}`);
+
+      const release = (await response.json()) as GitHubRelease;
+      if (!Array.isArray(release.assets)) throw new Error('GitHub release assets are missing');
+
+      downloads = downloads.map((download) => {
+        if (!download.resolveFromRelease) return download;
+        const asset = release.assets.find((candidate) =>
+          matchesAsset(download.id, candidate.name)
+        );
+        return asset
+          ? {
+              ...download,
+              detail: asset.name,
+              href: asset.browser_download_url,
+              resolveFromRelease: false
+            }
+          : download;
+      });
+    } catch (error) {
+      console.warn('Unable to resolve the latest DayMan release downloads.', error);
+    }
   }
 
   function toggleMenu(event: MouseEvent): void {
     event.stopPropagation();
     open = !open;
+    if (open) void resolveLatestReleaseDownloads();
     if (!open) showPwaHelp = false;
   }
 
@@ -242,8 +322,14 @@
 
         {#if downloads.length > 0}
           <div class="option-separator"><span>or</span></div>
-          {#each downloads as download (download.href)}
-            <a class="install-option" role="menuitem" href={download.href}>
+          {#each downloads as download (download.id)}
+            <a
+              class="install-option"
+              role="menuitem"
+              href={download.href}
+              target="_blank"
+              rel="noreferrer"
+            >
               <span class="option-icon native" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
                   <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 16v4h14v-4" />

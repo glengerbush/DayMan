@@ -73,15 +73,21 @@ server, or network connection is used by the widget.
 
 The renderer intentionally omits a live current-time hand. Android widget
 updates are opportunistic, so a minute hand would imply precision the host
-cannot guarantee. Sun, twilight, Moon, and event geometry remains fixed for the
-snapshot date.
+cannot guarantee. The center shows the snapshot date and fixed sunrise/sunset
+times rather than a relative countdown that could become stale. Sun, twilight,
+Moon, and event geometry remains fixed for the snapshot date.
 
 Refreshes are requested:
 
 - immediately after `saveClockSnapshot` or `refreshWidget`
+- whenever the full app resumes
 - every 30 minutes through unique WorkManager work
 - just after midnight in the saved timezone
 - after boot, date/time/timezone changes, app replacement, and widget enable
+
+The 30-minute WorkManager interval is best-effort: Android may defer background
+work for battery optimization or Doze. No runtime permission is required for
+these refresh requests.
 
 ## Signing the direct-install APK
 

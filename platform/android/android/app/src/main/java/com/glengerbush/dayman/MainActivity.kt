@@ -4,6 +4,7 @@ import android.os.Bundle
 import com.getcapacitor.BridgeActivity
 import com.glengerbush.dayman.bridge.DayManJavascriptBridge
 import com.glengerbush.dayman.bridge.DayManWidgetPlugin
+import com.glengerbush.dayman.widget.WidgetRefreshScheduler
 
 class MainActivity : BridgeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -13,5 +14,11 @@ class MainActivity : BridgeActivity() {
             DayManJavascriptBridge(applicationContext),
             "DayManAndroid",
         )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        WidgetRefreshScheduler.ensureScheduled(applicationContext)
+        WidgetRefreshScheduler.refreshNow(applicationContext)
     }
 }
