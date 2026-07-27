@@ -3,13 +3,12 @@ import XCTest
 
 final class ClockModelsTests: XCTestCase {
     func testEverySharedReferenceSnapshotDecodesAndValidates() throws {
-        let fixtureURLs = try XCTUnwrap(
-            Bundle(for: Self.self).urls(
-                forResourcesWithExtension: "json",
-                subdirectory: nil
-            )
+        let fixtureURLs = fixtureURLs()
+        XCTAssertGreaterThanOrEqual(
+            fixtureURLs.count,
+            7,
+            "Expected the shared ClockSnapshot fixtures in the DayManTests bundle."
         )
-        XCTAssertGreaterThanOrEqual(fixtureURLs.count, 7)
 
         for url in fixtureURLs {
             let snapshot = try DayManJSON.decoder.decode(
@@ -19,6 +18,28 @@ final class ClockModelsTests: XCTestCase {
             XCTAssertEqual(snapshot.schemaVersion, 1, url.lastPathComponent)
             XCTAssertNoThrow(try snapshot.validate(), url.lastPathComponent)
         }
+    }
+
+    func testHostBundlesWebApplication() throws {
+        let hostBundle = try XCTUnwrap(
+            ([Bundle.main] + Bundle.allBundles).first {
+                $0.bundleURL.pathExtension == "app"
+                    && $0.bundleURL.lastPathComponent == "DayMan.app"
+            },
+            "Expected XCTest to run inside the generated DayMan host app."
+        )
+        let webRoot = try XCTUnwrap(
+            hostBundle.resourceURL?.appendingPathComponent(
+                "Web",
+                isDirectory: true
+            )
+        )
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: webRoot.appendingPathComponent("index.html").path
+            ),
+            "DayMan.app must bundle Resources/Web/index.html."
+        )
     }
 
     func testEnvelopeRoundTripsThroughInjectedStore() throws {
@@ -159,8 +180,10 @@ final class ClockModelsTests: XCTestCase {
         _ name: String,
         as type: Value.Type
     ) throws -> Value {
-        let bundle = Bundle(for: Self.self)
-        let url = try XCTUnwrap(bundle.url(forResource: name, withExtension: "json"))
+        let url = try XCTUnwrap(
+            fixtureURL(named: name),
+            "Missing fixture \(name).json from the DayManTests bundle."
+        )
         return try DayManJSON.decoder.decode(Value.self, from: Data(contentsOf: url))
     }
 
@@ -171,7 +194,8 @@ final class ClockModelsTests: XCTestCase {
         expiresAt: String
     ) throws -> ClockSnapshot {
         let originalURL = try XCTUnwrap(
-            Bundle(for: Self.self).url(forResource: fixture, withExtension: "json")
+            fixtureURL(named: fixture),
+            "Missing fixture \(fixture).json from the DayManTests bundle."
         )
         var object = try XCTUnwrap(
             JSONSerialization.jsonObject(with: Data(contentsOf: originalURL))
@@ -190,5 +214,32 @@ final class ClockModelsTests: XCTestCase {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return try XCTUnwrap(formatter.date(from: value))
+    }
+
+    private func fixtureURLs() -> [URL] {
+        let bundle = Bundle(for: Self.self)
+        let rootURLs = bundle.urls(
+            forResourcesWithExtension: "json",
+            subdirectory: nil
+        ) ?? []
+        let nestedURLs = bundle.urls(
+            forResourcesWithExtension: "json",
+            subdirectory: "clock-snapshots"
+        ) ?? []
+        return Array(Set(rootURLs + nestedURLs)).sorted {
+            $0.lastPathComponent < $1.lastPathComponent
+        }
+    }
+
+    private func fixtureURL(named name: String) -> URL? {
+        let bundle = Bundle(for: Self.self)
+        return bundle.url(
+            forResource: name,
+            withExtension: "json"
+        ) ?? bundle.url(
+            forResource: name,
+            withExtension: "json",
+            subdirectory: "clock-snapshots"
+        )
     }
 }

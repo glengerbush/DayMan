@@ -29,10 +29,11 @@ targets:
     sources:
       - path: DayManApp
       - path: Shared
-    resources:
       - path: Resources/Web
         type: folder
+        buildPhase: resources
       - path: Resources/Assets.xcassets
+        buildPhase: resources
     info:
       path: Configuration/DayMan-Info.plist
     entitlements:
@@ -63,8 +64,8 @@ targets:
     sources:
       - path: DayManWidget
       - path: Shared
-    resources:
       - path: Resources/Assets.xcassets
+        buildPhase: resources
     info:
       path: Configuration/DayManWidget-Info.plist
     entitlements:
@@ -86,8 +87,10 @@ targets:
     platform: macOS
     sources:
       - path: Tests
-    resources:
       - path: ../../fixtures/clock-snapshots
+        buildPhase: resources
+        excludes:
+          - README.md
     dependencies:
       - target: DayMan
     configFiles:

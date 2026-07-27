@@ -37,9 +37,65 @@ if (( fixture_count < 7 )); then
 fi
 
 if command -v ruby >/dev/null 2>&1; then
-  ruby -e \
-    'require "yaml"; YAML.load_file(ARGV.fetch(0), aliases: true)' \
-    "${MACOS_ROOT}/project.yml"
+  ruby - "${MACOS_ROOT}/project.yml" <<'RUBY'
+require "yaml"
+
+project = YAML.load_file(ARGV.fetch(0), aliases: true)
+targets = project.fetch("targets")
+
+targets.each do |name, target|
+  next unless target.key?("resources")
+
+  abort(
+    "error: #{name} uses a target-level resources key; " \
+    "XcodeGen resources must be entries in sources"
+  )
+end
+
+def require_resource(targets, target_name, path, type: nil, excludes: [])
+  target = targets.fetch(target_name)
+  entry = target.fetch("sources").find do |source|
+    source.is_a?(Hash) && source["path"] == path
+  end
+  abort("error: #{target_name} is missing resource source #{path}") unless entry
+  unless entry["buildPhase"] == "resources"
+    abort("error: #{target_name} #{path} must use buildPhase: resources")
+  end
+  if type && entry["type"] != type
+    abort("error: #{target_name} #{path} must use type: #{type}")
+  end
+  missing_excludes = excludes - Array(entry["excludes"])
+  unless missing_excludes.empty?
+    abort(
+      "error: #{target_name} #{path} must exclude " \
+      "#{missing_excludes.join(", ")}"
+    )
+  end
+end
+
+require_resource(
+  targets,
+  "DayMan",
+  "Resources/Web",
+  type: "folder"
+)
+require_resource(
+  targets,
+  "DayMan",
+  "Resources/Assets.xcassets"
+)
+require_resource(
+  targets,
+  "DayManWidget",
+  "Resources/Assets.xcassets"
+)
+require_resource(
+  targets,
+  "DayManTests",
+  "../../fixtures/clock-snapshots",
+  excludes: ["README.md"]
+)
+RUBY
 fi
 
 if [[ -f "${MACOS_ROOT}/Resources/Web/index.html" ]]; then
