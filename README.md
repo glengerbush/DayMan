@@ -10,7 +10,7 @@ around a 24-hour dial for a chosen location and date. Install as a PWA or if you
 
 - **Web / PWA:** Visit [DayMan on the web](https://glen.industries/DayMan/), select **Install**, and follow the browser prompt (or use **Install app** / **Add to Home Screen** from the browser menu).
 - **Android:** From the [latest release](https://github.com/glengerbush/DayMan/releases/latest), download the `.apk`, open it, and approve installation from your browser or file manager if prompted.
-- **macOS:** From the [latest release](https://github.com/glengerbush/DayMan/releases/latest), download the `.dmg`, drag DayMan into **Applications**, run `xattr -cr /Applications/DayMan.app`, and then open it.
+- **macOS:** From the [latest release](https://github.com/glengerbush/DayMan/releases/latest), download the `.dmg`, drag DayMan into **Applications**, run `xattr -cr /Applications/DayMan.app`, and then open it once so macOS can register the bundled widget extension. The widget is included with the app and is not installed separately.
 - **Linux (any distribution):** From the [latest release](https://github.com/glengerbush/DayMan/releases/latest), download the `.AppImage`, make it executable, and run it.
 - **Debian / Ubuntu:** Download the `.deb` from the [latest release](https://github.com/glengerbush/DayMan/releases/latest) and open it with your software installer.
 - **Fedora:** Download the `.rpm` from the [latest release](https://github.com/glengerbush/DayMan/releases/latest) and open it with your software installer.

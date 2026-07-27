@@ -112,7 +112,7 @@ struct PlatformStateEnvelope: Codable, Equatable {
         updatedAt = try container.decode(Date.self, forKey: .updatedAt)
         settings = try container.decode(PlatformSettings.self, forKey: .settings)
         snapshot = try container.decode(ClockSnapshot.self, forKey: .snapshot)
-        // Version 1 originally carried only `snapshot`. Keep existing App Group
+        // Version 1 originally carried only `snapshot`. Keep existing shared-state
         // data readable while all newly encoded envelopes include the queue.
         snapshots = try container.decodeIfPresent(
             [ClockSnapshot].self,

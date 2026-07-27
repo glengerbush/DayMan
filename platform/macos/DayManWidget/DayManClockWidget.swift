@@ -8,7 +8,7 @@ struct DayManTimelineEntry: TimelineEntry {
 }
 
 struct DayManTimelineProvider: TimelineProvider {
-    private let store = AppGroupStore()
+    private let store = SharedStateStore()
 
     func placeholder(in context: Context) -> DayManTimelineEntry {
         DayManTimelineEntry(

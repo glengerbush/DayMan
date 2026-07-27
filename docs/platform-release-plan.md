@@ -12,7 +12,8 @@ The code portions of this pathway are implemented:
   without a server or background WebView
 - Capacitor Android host, Kotlin/Glance widget, scheduling, tests, passwordless
   release signing, and a direct-install APK build
-- SwiftUI/WKWebView macOS host, WidgetKit extension, App Group storage,
+- SwiftUI/WKWebView macOS host, WidgetKit extension, shared Application
+  Support storage,
   XcodeGen project, tests, ad-hoc signing, and DMG scripts
 - Tauri Linux host, XDG state bridge, Plasma 6 plasmoid, GNOME Shell
   extension, Flatpak/native/AUR packaging definitions, installers, and tests
@@ -93,7 +94,7 @@ required. See `docs/clock-snapshot-contract.md`.
 | Platform | Full app package | Widget implementation | Distribution |
 | --- | --- | --- | --- |
 | Android | Capacitor shell around the Vite build | Kotlin Jetpack Glance `AppWidget` showing a rendered dial image; one `PendingIntent` opens the app | Signed direct-install APK from GitHub Releases |
-| macOS | Small SwiftUI app containing a bundled `WKWebView` build | WidgetKit source is implemented, but its App Group state sharing requires Apple provisioning and remains unconfigured in the ad-hoc release | Ad-hoc-signed DMG from GitHub Releases; users clear quarantine before launch |
+| macOS | Small SwiftUI app containing a bundled `WKWebView` build | WidgetKit clock reading the app's snapshot queue from a narrowly entitled Application Support directory | Ad-hoc-signed DMG from GitHub Releases; users clear quarantine before launch |
 | Linux | Tauri 2 shell around the Vite build | Plasma 6 plasmoid for KDE; separate GNOME Shell extension for a panel surface | Flatpak plus Tauri `.deb`, `.rpm`, AppImage, and an AUR package |
 
 ### Android
@@ -116,9 +117,11 @@ Android's normal periodic `AppWidget` mechanism does not accept periods below
 ### macOS
 
 Use a native SwiftUI host because WidgetKit extensions and their signing,
-entitlements, shared App Group, previews, and store packaging are all managed
-directly by Xcode. Bundle the Vite output in the app and expose only a narrow
-JavaScript bridge for location/timezone persistence.
+entitlements, previews, and packaging are all managed directly by Xcode.
+Bundle the Vite output in the app and expose only a narrow JavaScript bridge
+for location/timezone persistence. The ad-hoc build shares its snapshot queue
+through `~/Library/Application Support/DayMan`, with a read/write sandbox
+exception on the app and read-only access on the widget.
 
 WidgetKit is timeline based rather than continuously running. Generate future
 timeline entries for predictable dial states, reload the timeline when the app
@@ -168,7 +171,7 @@ platform.
 - [Jetpack Glance](https://developer.android.com/develop/ui/compose/glance)
 - [Capacitor](https://capacitorjs.com/docs)
 - [Apple WidgetKit](https://developer.apple.com/documentation/widgetkit)
-- [Apple App Groups](https://developer.apple.com/documentation/xcode/configuring-app-groups)
+- [Apple App Sandbox temporary exceptions](https://developer.apple.com/library/archive/documentation/Miscellaneous/Reference/EntitlementKeyReference/Chapters/AppSandboxTemporaryExceptionEntitlements.html)
 - [Tauri distribution formats](https://v2.tauri.app/distribute/)
 - [KDE Plasma widgets](https://develop.kde.org/docs/plasma/widget/)
 - [GNOME Shell extensions](https://gjs.guide/extensions/)

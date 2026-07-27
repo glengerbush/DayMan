@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { on } from 'svelte/events';
+  import { isInstalledExperience } from '../install-context';
 
   interface BeforeInstallPromptEvent extends Event {
     prompt(): Promise<void>;
@@ -42,7 +43,7 @@
         : platform === 'linux'
           ? 'Linux'
           : null;
-  let installed = $state(isInstalled());
+  let installed = $state(isInstalledExperience());
   let open = $state(false);
   let showPwaHelp = $state(false);
   let installPrompt = $state<BeforeInstallPromptEvent | null>(null);
@@ -53,7 +54,7 @@
     const displayMode = window.matchMedia('(display-mode: standalone)');
 
     function updateInstalled(): void {
-      installed = isInstalled();
+      installed = isInstalledExperience();
       if (installed) open = false;
     }
 
@@ -87,22 +88,6 @@
     if (/macintosh|macintel|macppc|mac68k/i.test(identity)) return 'macos';
     if (/linux/i.test(identity)) return 'linux';
     return 'other';
-  }
-
-  function isInstalled(): boolean {
-    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
-
-    const iosStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true;
-    const nativeHost =
-      window.DayManAndroid !== undefined ||
-      window.DayManNative !== undefined ||
-      window.__TAURI_INTERNALS__ !== undefined ||
-      window.webkit?.messageHandlers?.daymanState !== undefined;
-    return (
-      window.matchMedia('(display-mode: standalone)').matches ||
-      iosStandalone ||
-      nativeHost
-    );
   }
 
   function configuredUrl(value: string | undefined): string | null {
@@ -341,6 +326,13 @@
               </span>
             </a>
           {/each}
+          {#if platform === 'macos'}
+            <p class="mac-install-note">
+              After dragging DayMan into Applications, run:
+              <code>xattr -cr /Applications/DayMan.app</code>
+              Then open DayMan once so macOS can register its bundled widget.
+            </p>
+          {/if}
         {:else if platformName}
           <p class="native-pending">
             The direct {platformName} download will appear here when the first build is released.
@@ -479,7 +471,8 @@
   }
 
   .install-help,
-  .native-pending {
+  .native-pending,
+  .mac-install-note {
     margin: 0;
     padding: 0.68rem 1rem 0.8rem 3.65rem;
     color: var(--text-muted);
@@ -495,6 +488,20 @@
   .native-pending {
     padding: 0.78rem 1rem;
     border-top: 1px solid var(--line);
+  }
+
+  .mac-install-note {
+    padding: 0.78rem 1rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .mac-install-note code {
+    display: block;
+    overflow-wrap: anywhere;
+    margin-top: 0.35rem;
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+    font-size: 0.61rem;
   }
 
   .option-separator {

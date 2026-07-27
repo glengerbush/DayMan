@@ -11,11 +11,11 @@ import WidgetKit
 final class NativeBridge {
     static let channelName = "daymanState"
 
-    private let store: AppGroupStore
+    private let store: SharedStateStore
     private let decoder: JSONDecoder
     private var lastTimelineReloadAt: Date?
 
-    init(store: AppGroupStore = AppGroupStore()) {
+    init(store: SharedStateStore = SharedStateStore()) {
         self.store = store
         self.decoder = DayManJSON.decoder
     }

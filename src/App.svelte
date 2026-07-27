@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type { Component } from 'svelte';
+  import { onMount, type Component } from 'svelte';
+  import { on } from 'svelte/events';
   import EventList from './lib/components/EventList.svelte';
   import InstallMenu from './lib/components/InstallMenu.svelte';
   import SkyDial from './lib/components/SkyDial.svelte';
@@ -9,6 +10,7 @@
     createClockSnapshotQueue
   } from './lib/clock-snapshot';
   import { coordinatesLabel } from './lib/location';
+  import { isInstalledExperience } from './lib/install-context';
   import {
     hasPlatformBridge,
     persistPlatformState
@@ -37,6 +39,7 @@
     onmethodchange: (method: LocationMethod) => void;
   }> | null>(null);
   let online = $state(navigator.onLine);
+  let installedExperience = $state(isInstalledExperience());
 
   let sky = $derived(calculateDaySky(dateKey, location, now));
   let nativeDateKey = $derived(dateKeyInZone(now, location.timezone));
@@ -77,6 +80,20 @@
       now = new Date();
     }, 30_000);
     return () => window.clearInterval(interval);
+  });
+
+  onMount(() => {
+    const displayMode = window.matchMedia('(display-mode: standalone)');
+    const updateInstalledExperience = (): void => {
+      installedExperience = isInstalledExperience();
+    };
+    updateInstalledExperience();
+
+    const cleanups = [
+      on(displayMode, 'change', updateInstalledExperience),
+      on(window, 'appinstalled', updateInstalledExperience)
+    ];
+    return () => cleanups.forEach((cleanup) => cleanup());
   });
 
   $effect(() => {
@@ -148,17 +165,27 @@
   <title>{location.label} · {longDate} · DayMan</title>
 </svelte:head>
 
+{#snippet brandContent()}
+  <svg viewBox="0 0 44 44" aria-hidden="true">
+    <circle cx="22" cy="22" r="18" />
+    <path d="M8 27c5-12 23-12 28 0" />
+    <circle cx="22" cy="14" r="3.5" />
+  </svg>
+  <span>DayMan</span>
+{/snippet}
+
 <main>
   <header class="app-header">
     <div class="header-leading">
-      <a class="brand" href={import.meta.env.BASE_URL} aria-label="DayMan home">
-        <svg viewBox="0 0 44 44" aria-hidden="true">
-          <circle cx="22" cy="22" r="18" />
-          <path d="M8 27c5-12 23-12 28 0" />
-          <circle cx="22" cy="14" r="3.5" />
-        </svg>
-        <span>DayMan</span>
-      </a>
+      {#if installedExperience}
+        <span class="brand" aria-label="DayMan">
+          {@render brandContent()}
+        </span>
+      {:else}
+        <a class="brand" href={import.meta.env.BASE_URL} aria-label="DayMan home">
+          {@render brandContent()}
+        </a>
+      {/if}
       <InstallMenu />
     </div>
 

@@ -11,11 +11,17 @@ struct WebContainerView: View {
             DayManWebView(loadError: $loadError)
 
             if let loadError {
-                ContentUnavailableView(
-                    "DayMan could not open",
-                    systemImage: "exclamationmark.triangle",
-                    description: Text(loadError)
-                )
+                VStack(spacing: 16) {
+                    ContentUnavailableView(
+                        "DayMan could not open",
+                        systemImage: "exclamationmark.triangle",
+                        description: Text(loadError)
+                    )
+                    Button("Dismiss") {
+                        self.loadError = nil
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
                 .foregroundStyle(.white)
                 .padding(32)
                 .background(.black.opacity(0.82), in: RoundedRectangle(cornerRadius: 18))

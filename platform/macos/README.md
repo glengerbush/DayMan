@@ -12,7 +12,7 @@ the `dayman://open` URL.
   HTTPS tiles through the app's outbound-network entitlement.
 - `DayManApp/NativeBridge.swift` validates the shared state envelope. See
   [BRIDGE.md](BRIDGE.md) for the versioned wire contract.
-- `Shared` contains the Codable settings/snapshot types, an atomic App Group
+- `Shared` contains the Codable settings/snapshot types, an atomic shared-file
   store, and the SwiftUI clock renderer compiled into both targets.
 - `DayManWidget` creates a rolling day of half-hour timeline entries. Each
   entry selects its local date from the 32-day snapshot queue, so crossing
@@ -67,12 +67,13 @@ The source uses these stable identifiers:
 ```text
 App:       com.glengerbush.DayMan
 Extension: com.glengerbush.DayMan.Widget
-App Group: group.com.glengerbush.DayMan
+State:     ~/Library/Application Support/DayMan/platform-state-v1.json
 ```
 
-The ad-hoc release build strips the App Group entitlement because it cannot be
-authorized without Apple provisioning. Consequently, the full app runs but
-the included widget cannot read the app's saved state.
+The app and widget remain sandboxed. Their entitlements grant access only to
+the DayMan Application Support directory: read/write for the app and read-only
+for the widget. No App Group, Apple development team, or provisioning profile
+is required by the direct-download build.
 
 ## Tests
 
@@ -87,7 +88,7 @@ xcodebuild test \
 
 The tests decode all version-1 fixtures directly from the repository's shared
 `fixtures/clock-snapshots` directory, exercise validation, and round-trip a
-full platform envelope through an injected temporary App Group directory.
+full platform envelope through an injected temporary shared-state directory.
 They also verify local-midnight queue selection, stale-queue rejection, and
 same-day-only compatibility for a pre-queue version-1 envelope.
 
@@ -128,11 +129,9 @@ an Apple Developer account or signing certificate.
 The GitHub release workflow performs the first two steps automatically. Test
 the DMG on a clean macOS account before publishing it.
 
-The full app works in this configuration. Apple requires a provisioned App
-Group before the WidgetKit extension can read the app's saved location. The
-ad-hoc build therefore strips that restricted entitlement and the widget
-remains unconfigured. Replacing the widget's shared-container architecture
-would be necessary to support it without an Apple developer account.
+The full app and widget use the same narrowly scoped shared file in this
+configuration. Open the app and choose a location before adding the widget so
+the initial snapshot queue exists.
 
 ## Release checklist
 
@@ -141,7 +140,9 @@ would be necessary to support it without an Apple developer account.
 - Confirm the app and widget are both ad-hoc signed.
 - Run XCTest and exercise offline app launch.
 - Confirm HTTPS map tiles load when online.
-- Confirm the unprovisioned widget fails closed with its configuration prompt.
+- Confirm the widget appears in the gallery after the app's first launch.
+- Confirm the widget reads the app's selected location and changes after a new
+  location is saved.
 - Inspect signatures with `codesign --verify --deep --strict --verbose=2`.
 - Install the DMG and verify the documented `xattr -cr` step.
 - Publish its checksum and keep the PWA install option available.

@@ -65,13 +65,21 @@ final class ClockModelsTests: XCTestCase {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let store = AppGroupStore(baseURL: directory)
+        let store = SharedStateStore(baseURL: directory)
 
         try state.validate()
         try store.save(state)
 
         XCTAssertEqual(try store.loadState(), state)
         XCTAssertEqual(try store.loadSnapshot(), snapshot)
+        let stateURL = directory.appendingPathComponent("platform-state-v1.json")
+        let attributes = try FileManager.default.attributesOfItem(
+            atPath: stateURL.path
+        )
+        XCTAssertEqual(
+            (attributes[.posixPermissions] as? NSNumber)?.intValue,
+            0o600
+        )
     }
 
     func testStoreSelectsSnapshotBySavedTimeZoneAndFallsBack() throws {
@@ -101,7 +109,7 @@ final class ClockModelsTests: XCTestCase {
             snapshot: current,
             snapshots: [current, next]
         )
-        let store = AppGroupStore(
+        let store = SharedStateStore(
             baseURL: FileManager.default.temporaryDirectory
         )
 
@@ -147,7 +155,7 @@ final class ClockModelsTests: XCTestCase {
         XCTAssertTrue(decoded.snapshots.isEmpty)
         XCTAssertNoThrow(try decoded.validate())
 
-        let store = AppGroupStore(
+        let store = SharedStateStore(
             baseURL: FileManager.default.temporaryDirectory
         )
         let sameLocalDate = try isoDate("2026-03-08T17:00:00.000Z")
@@ -174,6 +182,14 @@ final class ClockModelsTests: XCTestCase {
         )
 
         XCTAssertThrowsError(try location.validate())
+    }
+
+    func testSharedStoreUsesTheEntitledApplicationSupportDirectory() {
+        let home = URL(fileURLWithPath: "/Users/dayman-test", isDirectory: true)
+        XCTAssertEqual(
+            SharedStateStore.sharedDirectory(in: home).path,
+            "/Users/dayman-test/Library/Application Support/DayMan"
+        )
     }
 
     private func decodeFixture<Value: Decodable>(

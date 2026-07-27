@@ -58,16 +58,21 @@ window.addEventListener("dayman:native-result", ({ detail }) => {
 
 PWA persistence remains the source of truth and must not wait for this event.
 
-## App Group state
+## Shared macOS state
 
-The bridge atomically replaces `platform-state-v1.json` in the configured App
-Group. It asks WidgetKit to reload immediately for a location, current date,
-schema, or queue-date change and otherwise no more than once per 25 minutes.
-The widget opens the same envelope read-only. Each timeline entry selects the
-snapshot whose `dateKey` matches that entry in the saved location's timezone;
-if a non-empty queue has no match, the widget shows its refresh state rather
-than stale geometry. A legacy envelope with an absent/empty queue may use
-`snapshot` only while its `dateKey` matches the current local date.
+The bridge atomically replaces
+`~/Library/Application Support/DayMan/platform-state-v1.json`. The sandboxed
+app has a narrowly scoped home-relative read/write exception for that
+directory; the widget extension has the matching read-only exception. This
+keeps the ad-hoc release independent of Apple App Group provisioning.
+
+After a save, the bridge asks WidgetKit to reload immediately for a location,
+current date, schema, or queue-date change and otherwise no more than once per
+25 minutes. The widget opens the same envelope read-only. Each timeline entry
+selects the snapshot whose `dateKey` matches that entry in the saved location's
+timezone; if a non-empty queue has no match, the widget shows its refresh state
+rather than stale geometry. A legacy envelope with an absent/empty queue may
+use `snapshot` only while its `dateKey` matches the current local date.
 
 `Shared/ClockModels.swift` is the Codable counterpart to
 `src/lib/clock-snapshot.ts` and `src/lib/platform-bridge.ts`. The XCTest target

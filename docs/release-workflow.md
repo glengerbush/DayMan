@@ -62,13 +62,11 @@ quarantine attributes before opening it:
 xattr -cr /Applications/DayMan.app
 ```
 
-The full app works with this distribution model. The current WidgetKit
-extension cannot share the app's selected location in an ad-hoc build because
-Apple requires a provisioned App Group for that shared container. The release
-build strips the unauthorized App Group entitlement so macOS can launch the
-app reliably; the widget remains unconfigured. Supporting the widget without
-an Apple developer account would require replacing its shared-container
-architecture.
+The app and WidgetKit extension share
+`~/Library/Application Support/DayMan/platform-state-v1.json`. Their sandbox
+entitlements grant access only to that directory: read/write for the app and
+read-only for the widget. This avoids an Apple-provisioned App Group while
+keeping the direct-download release ad-hoc signed.
 
 ## Publishing a version
 

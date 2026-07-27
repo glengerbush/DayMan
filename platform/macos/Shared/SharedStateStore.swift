@@ -1,13 +1,14 @@
 import Foundation
+import Darwin
 
-struct AppGroupStore {
+struct SharedStateStore {
     enum StoreError: LocalizedError {
-        case appGroupUnavailable(String)
+        case homeDirectoryUnavailable
 
         var errorDescription: String? {
             switch self {
-            case .appGroupUnavailable(let identifier):
-                "The App Group \(identifier) is unavailable. Check signing and entitlements."
+            case .homeDirectoryUnavailable:
+                "DayMan could not resolve the current user's home directory."
             }
         }
     }
@@ -17,20 +18,13 @@ struct AppGroupStore {
     }
 
     let baseURL: URL?
-    let appGroupIdentifier: String
 
-    init(
-        baseURL: URL? = nil,
-        appGroupIdentifier: String = Bundle.main.object(
-            forInfoDictionaryKey: "DayManAppGroupIdentifier"
-        ) as? String ?? "group.com.glengerbush.DayMan"
-    ) {
+    init(baseURL: URL? = nil) {
         self.baseURL = baseURL
-        self.appGroupIdentifier = appGroupIdentifier
     }
 
     func loadState() throws -> PlatformStateEnvelope? {
-        let url = try resolvedDirectory().appendingPathComponent(Filename.state)
+        let url = try stateURL()
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
         return try DayManJSON.decoder.decode(
             PlatformStateEnvelope.self,
@@ -64,26 +58,52 @@ struct AppGroupStore {
     func save(_ state: PlatformStateEnvelope) throws {
         let directory = try resolvedDirectory()
         try createDirectoryIfNeeded(directory)
+        let url = directory.appendingPathComponent(Filename.state)
         try DayManJSON.encoder.encode(state).write(
-            to: directory.appendingPathComponent(Filename.state),
+            to: url,
             options: .atomic
         )
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o600],
+            ofItemAtPath: url.path
+        )
+    }
+
+    static func sharedDirectory(in homeDirectory: URL) -> URL {
+        homeDirectory
+            .appendingPathComponent("Library", isDirectory: true)
+            .appendingPathComponent("Application Support", isDirectory: true)
+            .appendingPathComponent("DayMan", isDirectory: true)
     }
 
     private func resolvedDirectory() throws -> URL {
         if let baseURL { return baseURL }
-        guard let url = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: appGroupIdentifier
-        ) else {
-            throw StoreError.appGroupUnavailable(appGroupIdentifier)
+        return Self.sharedDirectory(in: try currentUserHomeDirectory())
+    }
+
+    private func stateURL() throws -> URL {
+        try resolvedDirectory().appendingPathComponent(Filename.state)
+    }
+
+    private func currentUserHomeDirectory() throws -> URL {
+        guard
+            let passwordEntry = getpwuid(getuid()),
+            let path = passwordEntry.pointee.pw_dir
+        else {
+            throw StoreError.homeDirectoryUnavailable
         }
-        return url
+        return URL(
+            fileURLWithFileSystemRepresentation: path,
+            isDirectory: true,
+            relativeTo: nil
+        )
     }
 
     private func createDirectoryIfNeeded(_ directory: URL) throws {
         try FileManager.default.createDirectory(
             at: directory,
-            withIntermediateDirectories: true
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o700]
         )
     }
 

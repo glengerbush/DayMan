@@ -95,6 +95,25 @@ require_resource(
   "../../fixtures/clock-snapshots",
   excludes: ["README.md"]
 )
+
+shared_path = "/Library/Application Support/DayMan/"
+app_entitlements = targets.fetch("DayMan").fetch("entitlements").fetch("properties")
+widget_entitlements = targets.fetch("DayManWidget").fetch("entitlements").fetch("properties")
+
+unless app_entitlements[
+  "com.apple.security.temporary-exception.files.home-relative-path.read-write"
+] == [shared_path]
+  abort("error: DayMan must have narrowly scoped read/write shared-state access")
+end
+unless widget_entitlements[
+  "com.apple.security.temporary-exception.files.home-relative-path.read-only"
+] == [shared_path]
+  abort("error: DayManWidget must have narrowly scoped read-only shared-state access")
+end
+if app_entitlements.key?("com.apple.security.application-groups") ||
+   widget_entitlements.key?("com.apple.security.application-groups")
+  abort("error: the ad-hoc macOS build must not depend on an App Group")
+end
 RUBY
 fi
 
@@ -118,6 +137,28 @@ grep -Fq 'snapshots: ClockSnapshot[]' "${REPOSITORY_ROOT}/src/lib/platform-bridg
 grep -Fq 'daymanState' "${MACOS_ROOT}/DayManApp/NativeBridge.swift"
 grep -Fq 'setURLSchemeHandler' "${MACOS_ROOT}/DayManApp/DayManWebView.swift"
 grep -Fq 'dayman-app' "${MACOS_ROOT}/DayManApp/BundledWebSchemeHandler.swift"
+grep -Fq 'requestedPath.isEmpty ? "index.html"' \
+  "${MACOS_ROOT}/DayManApp/BundledWebSchemeHandler.swift"
+grep -Fq 'Button("Dismiss")' "${MACOS_ROOT}/DayManApp/WebContainerView.swift"
 grep -Fq 'let snapshots: [ClockSnapshot]' "${MACOS_ROOT}/Shared/ClockModels.swift"
+grep -Fq 'struct SharedStateStore' "${MACOS_ROOT}/Shared/SharedStateStore.swift"
+grep -Fq 'getpwuid(getuid())' "${MACOS_ROOT}/Shared/SharedStateStore.swift"
+grep -Fq 'Application Support' "${MACOS_ROOT}/Shared/SharedStateStore.swift"
+grep -Fq '/Library/Application Support/DayMan/' \
+  "${MACOS_ROOT}/Configuration/DayMan.entitlements"
+grep -Fq '/Library/Application Support/DayMan/' \
+  "${MACOS_ROOT}/Configuration/DayManWidget.entitlements"
+
+if grep -Rq 'com.apple.security.application-groups' \
+  "${MACOS_ROOT}/Configuration" "${MACOS_ROOT}/project.yml"; then
+  echo "error: macOS still declares an App Group entitlement" >&2
+  exit 1
+fi
+
+if grep -Fq 'Delete :com.apple.security.application-groups' \
+  "${SCRIPT_DIR}/archive.sh"; then
+  echo "error: archive script still mutates App Group entitlements" >&2
+  exit 1
+fi
 
 echo "macOS static validation passed (${fixture_count} shared fixtures)."

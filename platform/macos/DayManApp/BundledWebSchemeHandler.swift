@@ -53,10 +53,10 @@ final class BundledWebSchemeHandler: NSObject, WKURLSchemeHandler {
 
     private func bundledFileURL(for requestURL: URL) -> URL? {
         guard let decodedPath = requestURL.path.removingPercentEncoding else { return nil }
-        let relativePath = decodedPath.trimmingCharacters(
+        let requestedPath = decodedPath.trimmingCharacters(
             in: CharacterSet(charactersIn: "/")
         )
-        guard !relativePath.isEmpty else { return nil }
+        let relativePath = requestedPath.isEmpty ? "index.html" : requestedPath
 
         let candidate = rootURL
             .appendingPathComponent(relativePath)
