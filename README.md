@@ -10,7 +10,7 @@ widget.
 
 ## Install
 
-- **Web / PWA:** Visit [DayMan on the web](https://glengerbush.github.io/DayMan/), select **Install**, and follow the browser prompt (or use **Install app** / **Add to Home Screen** from the browser menu).
+- **Web / PWA:** Visit [DayMan on the web](https://glen.industries/DayMan/), select **Install**, and follow the browser prompt (or use **Install app** / **Add to Home Screen** from the browser menu).
 - **Android:** From the [latest release](https://github.com/glengerbush/DayMan/releases/latest), download the `.apk`, open it, and approve installation from your browser or file manager if prompted.
 - **macOS:** From the [latest release](https://github.com/glengerbush/DayMan/releases/latest), download the `.dmg`, open it, and drag DayMan into **Applications**.
 - **Linux (any distribution):** From the [latest release](https://github.com/glengerbush/DayMan/releases/latest), download the `.AppImage`, make it executable, and run it.
