@@ -1,4 +1,4 @@
-import { access, readFile } from 'node:fs/promises';
+import { access, readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
@@ -32,6 +32,13 @@ const manifest = JSON.parse(
 );
 const serviceWorker = await readFile(resolve(dist, 'sw.js'), 'utf8');
 const index = await readFile(resolve(dist, 'index.html'), 'utf8');
+const generatedJavaScript = (
+  await Promise.all(
+    (await readdir(resolve(dist, 'assets')))
+      .filter((name) => name.endsWith('.js'))
+      .map((name) => readFile(resolve(dist, 'assets', name), 'utf8'))
+  )
+).join('\n');
 
 assert(manifest.name === 'DayMan — Sun & Moon', 'Unexpected manifest name');
 assert(manifest.short_name === 'DayMan', 'Unexpected manifest short name');
@@ -99,6 +106,10 @@ assert(
 assert(
   index.includes(`${expectedBase}registerSW.js`),
   'HTML service-worker registration does not use the deployment base'
+);
+assert(
+  generatedJavaScript.includes(`${expectedBase}moon-nearside.webp`),
+  'Moon texture URL does not use the deployment base'
 );
 await access(resolve(dist, '.nojekyll'));
 

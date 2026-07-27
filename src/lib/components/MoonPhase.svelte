@@ -8,6 +8,7 @@
 
   let { phaseAngle, id }: Props = $props();
 
+  const textureHref = `${import.meta.env.BASE_URL}moon-nearside.webp`;
   let phaseShape = $derived(moonPhasePath(phaseAngle));
   let clipId = $derived(`${id}-lit-clip`);
 
@@ -39,7 +40,7 @@
 <g class="moon-phase">
   <circle r="9" class="moon-hidden" />
   <image
-    href="/moon-nearside.webp"
+    href={textureHref}
     x="-9"
     y="-9"
     width="18"
