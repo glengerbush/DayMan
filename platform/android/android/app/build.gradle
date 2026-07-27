@@ -1,0 +1,111 @@
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+
+def releaseStorePath = System.getenv("DAYMAN_ANDROID_KEYSTORE")
+def releaseStorePassword = System.getenv("DAYMAN_ANDROID_STORE_PASSWORD")
+def releaseKeyAlias = System.getenv("DAYMAN_ANDROID_KEY_ALIAS")
+def releaseKeyPassword = System.getenv("DAYMAN_ANDROID_KEY_PASSWORD")
+def releaseSigningValues = [releaseStorePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword]
+def releaseSigningConfigured = releaseSigningValues.every { it != null && !it.isBlank() }
+def releaseSigningPartiallyConfigured = releaseSigningValues.any { it != null && !it.isBlank() }
+if (releaseSigningPartiallyConfigured && !releaseSigningConfigured) {
+    throw new GradleException(
+        "Android release signing is partially configured. Set all four DAYMAN_ANDROID_* signing variables or none."
+    )
+}
+
+android {
+    namespace = "com.glengerbush.dayman"
+    compileSdk = rootProject.ext.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.glengerbush.dayman"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode Integer.parseInt(System.getenv("DAYMAN_ANDROID_VERSION_CODE") ?: "1")
+        versionName System.getenv("DAYMAN_ANDROID_VERSION_NAME") ?: "0.1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        release {
+            if (releaseSigningConfigured) {
+                storeFile file(releaseStorePath)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (releaseSigningConfigured) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    buildFeatures {
+        compose true
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    packaging {
+        resources.excludes += [
+            "META-INF/AL2.0",
+            "META-INF/LGPL2.1"
+        ]
+    }
+
+    sourceSets {
+        test.resources.srcDir '../../../../fixtures/clock-snapshots'
+    }
+}
+
+repositories {
+    flatDir {
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    implementation project(':capacitor-cordova-android-plugins')
+
+    implementation "androidx.glance:glance-appwidget:1.1.1"
+    implementation "androidx.work:work-runtime-ktx:2.10.5"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
+
+    testImplementation "junit:junit:$junitVersion"
+    testImplementation "org.json:json:20240303"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+}
+
+apply from: 'capacitor.build.gradle'

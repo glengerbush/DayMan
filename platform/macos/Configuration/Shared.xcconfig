@@ -1,0 +1,11 @@
+// These defaults let a local unsigned build generate. Override them in
+// Configuration/Local.xcconfig or from xcodebuild in your release environment.
+DAYMAN_BUNDLE_ID = com.glengerbush.DayMan
+DAYMAN_WIDGET_BUNDLE_ID = com.glengerbush.DayMan.Widget
+DAYMAN_APP_GROUP = group.com.glengerbush.DayMan
+DAYMAN_DEVELOPMENT_TEAM =
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+
+// This file is intentionally untracked when created by a developer or CI.
+#include? "Local.xcconfig"

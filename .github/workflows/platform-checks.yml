@@ -1,0 +1,123 @@
+name: Validate native platforms
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android shell
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Build embedded web app
+        run: npm run build:native
+
+      - name: Install Capacitor dependencies
+        working-directory: platform/android
+        run: npm ci
+
+      - name: Sync and validate Android project
+        working-directory: platform/android
+        run: |
+          npm run sync
+          npm run validate
+          cd android
+          ./gradlew projects
+
+  macos:
+    name: macOS host and widget
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate native project and bundled web app
+        run: platform/macos/scripts/bootstrap-xcode.sh
+
+      - name: Run macOS tests
+        run: |
+          xcodebuild test \
+            -project platform/macos/DayMan.xcodeproj \
+            -scheme DayMan \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO
+
+  linux:
+    name: Linux app and widgets
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            appstream \
+            desktop-file-utils \
+            jq \
+            libappindicator3-dev \
+            librsvg2-dev \
+            libssl-dev \
+            libwebkit2gtk-4.1-dev \
+            patchelf
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Build embedded web app
+        run: npm run build:native
+
+      - name: Validate Linux metadata and widgets
+        run: platform/linux/scripts/validate.sh
+
+      - name: Test Tauri bridge
+        run: cargo test --locked --manifest-path platform/linux/src-tauri/Cargo.toml
+
+      - name: Build Linux application
+        run: platform/linux/scripts/build-app.sh release

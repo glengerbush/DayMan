@@ -1,0 +1,3 @@
+-keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
+-keep class com.glengerbush.dayman.bridge.DayManWidgetPlugin { *; }
+-keep class com.glengerbush.dayman.widget.** { *; }

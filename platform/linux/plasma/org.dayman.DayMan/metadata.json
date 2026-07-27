@@ -1,0 +1,20 @@
+{
+  "KPlugin": {
+    "Authors": [
+      {
+        "Email": "glengerbush@gmail.com",
+        "Name": "Glen Gerbush"
+      }
+    ],
+    "Category": "Date and Time",
+    "Description": "A display-only 24-hour Sun and Moon clock that opens DayMan",
+    "Icon": "com.dayman.DayMan",
+    "Id": "org.dayman.DayMan",
+    "License": "Proprietary",
+    "Name": "DayMan Clock",
+    "Version": "0.1.0",
+    "Website": "https://github.com/glengerbush/DayMan"
+  },
+  "KPackageStructure": "Plasma/Applet",
+  "X-Plasma-API-Minimum-Version": "6.0"
+}

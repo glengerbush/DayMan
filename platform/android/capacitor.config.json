@@ -1,0 +1,9 @@
+{
+  "appId": "com.glengerbush.dayman",
+  "appName": "DayMan",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#101a2d",
+    "allowMixedContent": false
+  }
+}

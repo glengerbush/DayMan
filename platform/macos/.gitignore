@@ -1,0 +1,6 @@
+build/
+DayMan.xcodeproj/
+Configuration/Local.xcconfig
+Resources/Web/*
+!Resources/Web/.gitkeep
+Resources/Assets.xcassets/AppIcon.appiconset/*.png

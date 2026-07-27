@@ -1,0 +1,19 @@
+pkgbase = dayman
+	pkgdesc = Local-first 24-hour Sun and Moon clock with Plasma and GNOME widgets
+	pkgver = 0.1.0
+	pkgrel = 1
+	url = https://github.com/glengerbush/DayMan
+	arch = x86_64
+	license = LicenseRef-Proprietary
+	makedepends = cargo
+	makedepends = nodejs
+	makedepends = npm
+	makedepends = patchelf
+	depends = webkit2gtk-4.1
+	depends = gtk3
+	optdepends = plasma-workspace: Plasma 6 desktop or panel widget
+	optdepends = gnome-shell: GNOME panel extension
+	source = dayman-0.1.0.tar.gz::https://github.com/glengerbush/DayMan/archive/refs/tags/v0.1.0.tar.gz
+	sha256sums = SKIP
+
+pkgname = dayman

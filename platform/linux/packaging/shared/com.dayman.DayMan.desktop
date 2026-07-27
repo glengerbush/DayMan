@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=DayMan
+GenericName=Sun and Moon Clock
+Comment=View daylight, twilight, and Moon events on a 24-hour dial
+Exec=dayman
+Icon=com.dayman.DayMan
+Terminal=false
+Categories=Utility;
+Keywords=sun;moon;twilight;astronomy;clock;
+StartupNotify=true
+StartupWMClass=DayMan

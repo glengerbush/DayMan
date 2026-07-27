@@ -1,0 +1,35 @@
+app-id: com.dayman.DayMan
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: dayman
+
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --share=network
+  - --filesystem=xdg-config/dayman:create
+
+modules:
+  - name: dayman
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin
+      env:
+        CARGO_HOME: /run/build/dayman/cargo
+    build-commands:
+      - cargo --offline build --release --manifest-path platform/linux/src-tauri/Cargo.toml
+      - install -Dm755 platform/linux/src-tauri/target/release/dayman /app/bin/dayman
+      - install -Dm644 platform/linux/packaging/shared/com.dayman.DayMan.desktop /app/share/applications/com.dayman.DayMan.desktop
+      - install -Dm644 platform/linux/packaging/shared/com.dayman.DayMan.metainfo.xml /app/share/metainfo/com.dayman.DayMan.metainfo.xml
+      - install -Dm644 public/pwa-192.png /app/share/icons/hicolor/192x192/apps/com.dayman.DayMan.png
+      - install -Dm644 public/pwa-512.png /app/share/icons/hicolor/512x512/apps/com.dayman.DayMan.png
+    sources:
+      - type: dir
+        path: ../../..
+      - cargo-sources.json
+
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable

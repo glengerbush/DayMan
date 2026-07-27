@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.dayman.DayMan</id>
+  <name>DayMan</name>
+  <summary>A 24-hour Sun and Moon clock</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <developer id="github.com/glengerbush">
+    <name>Glen Gerbush</name>
+  </developer>
+  <description>
+    <p>
+      DayMan shows daylight, civil, nautical, and astronomical twilight,
+      Moon visibility, and solar and lunar events around a single 24-hour dial.
+      Calculations and saved locations remain on the device.
+    </p>
+  </description>
+  <launchable type="desktop-id">com.dayman.DayMan.desktop</launchable>
+  <url type="homepage">https://github.com/glengerbush/DayMan</url>
+  <url type="bugtracker">https://github.com/glengerbush/DayMan/issues</url>
+  <provides>
+    <binary>dayman</binary>
+  </provides>
+  <categories>
+    <category>Utility</category>
+    <category>Education</category>
+  </categories>
+  <releases>
+    <release version="0.1.0" date="2026-07-26">
+      <description>
+        <p>Initial Linux app, Plasma widget, and GNOME panel extension.</p>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

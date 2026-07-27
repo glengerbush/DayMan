@@ -1,0 +1,59 @@
+# Maintainer: Glen Gerbush <glengerbush@gmail.com>
+pkgname=dayman
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Local-first 24-hour Sun and Moon clock with Plasma and GNOME widgets'
+arch=('x86_64')
+url='https://github.com/glengerbush/DayMan'
+license=('LicenseRef-Proprietary')
+depends=('webkit2gtk-4.1' 'gtk3')
+makedepends=('cargo' 'nodejs' 'npm' 'patchelf')
+optdepends=(
+  'plasma-workspace: Plasma 6 desktop or panel widget'
+  'gnome-shell: GNOME panel extension'
+)
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "DayMan-$pkgver"
+  export npm_config_cache="$srcdir/npm-cache"
+  npm ci --ignore-scripts
+}
+
+build() {
+  cd "DayMan-$pkgver"
+  export npm_config_cache="$srcdir/npm-cache"
+  npm run build:native
+  cargo build --release --locked \
+    --manifest-path platform/linux/src-tauri/Cargo.toml
+}
+
+check() {
+  cd "DayMan-$pkgver"
+  cargo test --locked --manifest-path platform/linux/src-tauri/Cargo.toml
+  platform/linux/scripts/validate.sh
+}
+
+package() {
+  cd "DayMan-$pkgver"
+
+  install -Dm755 platform/linux/src-tauri/target/release/dayman \
+    "$pkgdir/usr/bin/dayman"
+  install -Dm644 platform/linux/packaging/shared/com.dayman.DayMan.desktop \
+    "$pkgdir/usr/share/applications/com.dayman.DayMan.desktop"
+  install -Dm644 platform/linux/packaging/shared/com.dayman.DayMan.metainfo.xml \
+    "$pkgdir/usr/share/metainfo/com.dayman.DayMan.metainfo.xml"
+  install -Dm644 public/pwa-192.png \
+    "$pkgdir/usr/share/icons/hicolor/192x192/apps/com.dayman.DayMan.png"
+  install -Dm644 public/pwa-512.png \
+    "$pkgdir/usr/share/icons/hicolor/512x512/apps/com.dayman.DayMan.png"
+
+  install -d "$pkgdir/usr/share/plasma/plasmoids"
+  cp -a platform/linux/plasma/org.dayman.DayMan \
+    "$pkgdir/usr/share/plasma/plasmoids/"
+
+  install -d "$pkgdir/usr/share/gnome-shell/extensions"
+  cp -a platform/linux/gnome/dayman@dayman.app \
+    "$pkgdir/usr/share/gnome-shell/extensions/"
+}

@@ -1,0 +1,100 @@
+name: DayMan
+
+options:
+  minimumXcodeGenVersion: 2.42.0
+  deploymentTarget:
+    macOS: "14.0"
+  groupSortPosition: top
+
+configs:
+  Debug: debug
+  Release: release
+
+settings:
+  base:
+    SWIFT_VERSION: 5.9
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: "$(DAYMAN_DEVELOPMENT_TEAM)"
+  configs:
+    Debug:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+    Release:
+      SWIFT_COMPILATION_MODE: wholemodule
+
+targets:
+  DayMan:
+    type: application
+    platform: macOS
+    sources:
+      - path: DayManApp
+      - path: Shared
+    resources:
+      - path: Resources/Web
+        type: folder
+      - path: Resources/Assets.xcassets
+    info:
+      path: Configuration/DayMan-Info.plist
+    entitlements:
+      path: Configuration/DayMan.entitlements
+    configFiles:
+      Debug: Configuration/Development.xcconfig
+      Release: Configuration/Release.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(DAYMAN_BUNDLE_ID)"
+        PRODUCT_NAME: DayMan
+        INFOPLIST_KEY_CFBundleDisplayName: DayMan
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_INJECT_BASE_ENTITLEMENTS: YES
+    dependencies:
+      - target: DayManWidget
+        embed: true
+    scheme:
+      gatherCoverageData: true
+      testTargets:
+        - DayManTests
+
+  DayManWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: DayManWidget
+      - path: Shared
+    resources:
+      - path: Resources/Assets.xcassets
+    info:
+      path: Configuration/DayManWidget-Info.plist
+    entitlements:
+      path: Configuration/DayManWidget.entitlements
+    configFiles:
+      Debug: Configuration/Development.xcconfig
+      Release: Configuration/Release.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(DAYMAN_WIDGET_BUNDLE_ID)"
+        PRODUCT_NAME: DayManWidget
+        GENERATE_INFOPLIST_FILE: NO
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+
+  DayManTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+    resources:
+      - path: ../../fixtures/clock-snapshots
+    dependencies:
+      - target: DayMan
+    configFiles:
+      Debug: Configuration/Development.xcconfig
+      Release: Configuration/Release.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "$(DAYMAN_BUNDLE_ID).Tests"
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO

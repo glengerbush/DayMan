@@ -1,0 +1,23 @@
+{
+  "name": "@dayman/android",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync:web": "node scripts/sync-web.mjs",
+    "sync": "npm --prefix ../.. run build:native && npm run sync:web && cap sync android",
+    "validate": "node scripts/validate.mjs",
+    "test": "npm run validate && npm run sync && cd android && ./gradlew testDebugUnitTest",
+    "android:open": "npm run sync && cap open android",
+    "android:debug": "npm run sync && cd android && ./gradlew assembleDebug",
+    "release:apk": "npm run sync && cd android && ./gradlew assembleRelease",
+    "release:aab": "npm run sync && cd android && ./gradlew bundleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.4.2",
+    "@capacitor/core": "8.4.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.4.2"
+  }
+}

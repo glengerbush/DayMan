@@ -1,0 +1,8 @@
+{
+  "uuid": "dayman@dayman.app",
+  "name": "DayMan Clock",
+  "description": "A display-only 24-hour Sun and Moon panel clock that opens DayMan",
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
+  "url": "https://github.com/glengerbush/DayMan",
+  "version": 1
+}

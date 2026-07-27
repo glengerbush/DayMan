@@ -1,0 +1,68 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "DayMan",
+  "version": "0.1.0",
+  "identifier": "com.dayman.DayMan",
+  "build": {
+    "frontendDist": "../../../dist",
+    "devUrl": "http://localhost:5173"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "DayMan",
+        "width": 1180,
+        "height": 820,
+        "minWidth": 720,
+        "minHeight": 620,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost https://tile.openstreetmap.org; img-src 'self' asset: http://asset.localhost data: blob: https://tile.openstreetmap.org; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'; worker-src 'self' blob:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["deb", "rpm", "appimage"],
+    "category": "Utility",
+    "shortDescription": "A local-first 24-hour Sun and Moon clock",
+    "longDescription": "DayMan shows daylight, twilight, Moon visibility, and solar and lunar events around a single 24-hour dial for a saved location.",
+    "homepage": "https://github.com/glengerbush/DayMan",
+    "license": "LicenseRef-Proprietary",
+    "icon": [
+      "../../../public/pwa-192.png",
+      "../../../public/pwa-512.png"
+    ],
+    "linux": {
+      "deb": {
+        "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0"],
+        "files": {
+          "/usr/share/applications/com.dayman.DayMan.desktop": "../packaging/shared/com.dayman.DayMan.desktop",
+          "/usr/share/metainfo/com.dayman.DayMan.metainfo.xml": "../packaging/shared/com.dayman.DayMan.metainfo.xml",
+          "/usr/share/plasma/plasmoids/org.dayman.DayMan": "../plasma/org.dayman.DayMan",
+          "/usr/share/gnome-shell/extensions/dayman@dayman.app": "../gnome/dayman@dayman.app"
+        }
+      },
+      "rpm": {
+        "depends": ["webkit2gtk4.1", "gtk3"],
+        "files": {
+          "/usr/share/applications/com.dayman.DayMan.desktop": "../packaging/shared/com.dayman.DayMan.desktop",
+          "/usr/share/metainfo/com.dayman.DayMan.metainfo.xml": "../packaging/shared/com.dayman.DayMan.metainfo.xml",
+          "/usr/share/plasma/plasmoids/org.dayman.DayMan": "../plasma/org.dayman.DayMan",
+          "/usr/share/gnome-shell/extensions/dayman@dayman.app": "../gnome/dayman@dayman.app"
+        }
+      },
+      "appimage": {
+        "bundleMediaFramework": false,
+        "files": {
+          "/usr/share/applications/com.dayman.DayMan.desktop": "../packaging/shared/com.dayman.DayMan.desktop",
+          "/usr/share/dayman/widgets/plasma/org.dayman.DayMan": "../plasma/org.dayman.DayMan",
+          "/usr/share/dayman/widgets/gnome/dayman@dayman.app": "../gnome/dayman@dayman.app",
+          "/usr/share/dayman/install-widgets.sh": "../scripts/install-widgets.sh"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "calculatedAt": "2026-06-21T12:00:00.000Z",
+  "expiresAt": "2026-06-21T22:00:00.000Z",
+  "dateKey": "2026-06-21",
+  "timezone": "Europe/Oslo",
+  "location": {
+    "label": "Tromsø",
+    "latitude": 69.6492,
+    "longitude": 18.9553
+  },
+  "size": {
+    "width": 420,
+    "height": 420,
+    "density": 1
+  },
+  "geometry": {
+    "viewBox": 420,
+    "center": 210,
+    "outerRadius": 190,
+    "sunRadius": 138,
+    "moonRadius": 112,
+    "hourLabelRadius": 170,
+    "handStartRadius": 64,
+    "handEndRadius": 181
+  },
+  "palette": {
+    "background": "#0c1424",
+    "face": "#111b2e",
+    "track": "#222a39",
+    "text": "#f2f7fc",
+    "mutedText": "#b8cbe0",
+    "currentHand": "#f2f7fc"
+  },
+  "hourLabels": [
+    {
+      "hour": 0,
+      "label": "00",
+      "minute": 0
+    },
+    {
+      "hour": 3,
+      "label": "03",
+      "minute": 180
+    },
+    {
+      "hour": 6,
+      "label": "06",
+      "minute": 360
+    },
+    {
+      "hour": 9,
+      "label": "09",
+      "minute": 540
+    },
+    {
+      "hour": 12,
+      "label": "12",
+      "minute": 720
+    },
+    {
+      "hour": 15,
+      "label": "15",
+      "minute": 900
+    },
+    {
+      "hour": 18,
+      "label": "18",
+      "minute": 1080
+    },
+    {
+      "hour": 21,
+      "label": "21",
+      "minute": 1260
+    }
+  ],
+  "arcs": [
+    {
+      "kind": "astronomical",
+      "label": "Astronomical twilight",
+      "detail": "Sun 12–18° below the horizon",
+      "color": "#2d405d",
+      "radius": 138,
+      "strokeWidth": 15,
+      "ranges": [
+        {
+          "startMinute": 0,
+          "endMinute": 1440
+        }
+      ]
+    },
+    {
+      "kind": "nautical",
+      "label": "Nautical twilight",
+      "detail": "Sun 6–12° below the horizon",
+      "color": "#435e7a",
+      "radius": 138,
+      "strokeWidth": 15,
+      "ranges": [
+        {
+          "startMinute": 0,
+          "endMinute": 1440
+        }
+      ]
+    },
+    {
+      "kind": "civil",
+      "label": "Civil twilight",
+      "detail": "Sun 0–6° below the horizon",
+      "color": "#718ba3",
+      "radius": 138,
+      "strokeWidth": 15,
+      "ranges": [
+        {
+          "startMinute": 0,
+          "endMinute": 1440
+        }
+      ]
+    },
+    {
+      "kind": "daylight",
+      "label": "Daylight",
+      "detail": "Sun above the horizon",
+      "color": "#ffb552",
+      "radius": 138,
+      "strokeWidth": 15,
+      "ranges": [
+        {
+          "startMinute": 0,
+          "endMinute": 1440
+        }
+      ]
+    },
+    {
+      "kind": "moon",
+      "label": "Moon above horizon",
+      "detail": "Moon above the geometric horizon",
+      "color": "#d9e5ea",
+      "radius": 112,
+      "strokeWidth": 10,
+      "ranges": [
+        {
+          "startMinute": 0,
+          "endMinute": 37.18333333333333
+        },
+        {
+          "startMinute": 737.8166666666667,
+          "endMinute": 1440
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "kind": "moonset",
+      "body": "moon",
+      "marker": "setting",
+      "label": "Moonset",
+      "time": "2026-06-20T22:37:11.357Z",
+      "timeLabel": "00:37",
+      "minute": 37.18333333333333,
+      "radius": 112,
+      "visibleOnDial": true
+    },
+    {
+      "kind": "moonrise",
+      "body": "moon",
+      "marker": "rising",
+      "label": "Moonrise",
+      "time": "2026-06-21T10:17:49.404Z",
+      "timeLabel": "12:18",
+      "minute": 737.8166666666667,
+      "radius": 112,
+      "visibleOnDial": true
+    },
+    {
+      "kind": "solar-noon",
+      "body": "sun",
+      "marker": "peak",
+      "label": "Solar noon",
+      "time": "2026-06-21T10:45:58.983Z",
+      "timeLabel": "12:46",
+      "minute": 765.9666666666667,
+      "radius": 138,
+      "visibleOnDial": true
+    },
+    {
+      "kind": "lunar-noon",
+      "body": "moon",
+      "marker": "peak",
+      "label": "Lunar noon",
+      "time": "2026-06-21T16:32:31.143Z",
+      "timeLabel": "18:33",
+      "minute": 1112.5166666666667,
+      "radius": 112,
+      "visibleOnDial": true
+    }
+  ],
+  "referenceMinute": 840,
+  "currentTimeLabel": "14:00",
+  "nextSolarEvent": {
+    "kind": "sunset",
+    "time": "2026-07-25T22:36:16.746Z",
+    "timeLabel": "00:36",
+    "relativeLabel": "Sunset in 34d 10h"
+  },
+  "moon": {
+    "illumination": 0.45831424801030923,
+    "phaseAngle": 85.06955564088135,
+    "phaseName": "First quarter",
+    "markerMinute": 840
+  },
+  "accessibilityText": "DayMan clock for Tromsø on 2026-06-21 in Europe/Oslo. 24.0 hours of daylight. First quarter, 46 percent illuminated. Sunset in 34d 10h."
+}

@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "calculatedAt": "2026-08-12T16:00:00.000Z",
+  "expiresAt": "2026-08-13T04:00:00.000Z",
+  "dateKey": "2026-08-12",
+  "timezone": "America/New_York",
+  "location": {
+    "label": "New York",
+    "latitude": 40.7128,
+    "longitude": -74.006
+  },
+  "size": {
+    "width": 420,
+    "height": 420,
+    "density": 1
+  },
+  "geometry": {
+    "viewBox": 420,
+    "center": 210,
+    "outerRadius": 190,
+    "sunRadius": 138,
+    "moonRadius": 112,
+    "hourLabelRadius": 170,
+    "handStartRadius": 64,
+    "handEndRadius": 181
+  },
+  "palette": {
+    "background": "#0c1424",
+    "face": "#111b2e",
+    "track": "#222a39",
+    "text": "#f2f7fc",
+    "mutedText": "#b8cbe0",
+    "currentHand": "#f2f7fc"
+  },
+  "hourLabels": [
+    {
+      "hour": 0,
+      "label": "00",
+      "minute": 0
+    },
+    {
+      "hour": 3,
+      "label": "03",
+      "minute": 180
+    },
+    {
+      "hour": 6,
+      "label": "06",
+      "minute": 360
+    },
+    {
+      "hour": 9,
+      "label": "09",
+      "minute": 540
+    },
+    {
+      "hour": 12,
+      "label": "12",
+      "minute": 720
+    },
+    {
+      "hour": 15,
+      "label": "15",
+      "minute": 900
+    },
+    {
+      "hour": 18,
+      "label": "18",
+      "minute": 1080
+    },
+    {
+      "hour": 21,
+      "label": "21",
+      "minute": 1260
+    }
+  ],
+  "arcs": [
+    {
+      "kind": "astronomical",
+      "label": "Astronomical twilight",
+      "detail": "Sun 12–18° below the horizon",
+      "color": "#2d405d",
+      "radius": 138,
+      "strokeWidth": 15,
+      "ranges": [
+        {
+          "startMinute": 258.5833333333333,
+          "endMinute": 1302.3
+        }
+      ]
+    },
+    {
+      "kind": "nautical",
+      "label": "Nautical twilight",
+      "detail": "Sun 6–12° below the horizon",
+      "color": "#435e7a",
+      "radius": 138,
+      "strokeWidth": 15,
+      "ranges": [
+        {
+          "startMinute": 297.65,
+          "endMinute": 1263.4833333333333
+        }
+      ]
+    },
+    {
+      "kind": "civil",
+      "label": "Civil twilight",
+      "detail": "Sun 0–6° below the horizon",
+      "color": "#718ba3",
+      "radius": 138,
+      "strokeWidth": 15,
+      "ranges": [
+        {
+          "startMinute": 333.81666666666666,
+          "endMinute": 1227.4833333333333
+        }
+      ]
+    },
+    {
+      "kind": "daylight",
+      "label": "Daylight",
+      "detail": "Sun above the horizon",
+      "color": "#ffb552",
+      "radius": 138,
+      "strokeWidth": 15,
+      "ranges": [
+        {
+          "startMinute": 363.5,
+          "endMinute": 1197.9
+        }
+      ]
+    },
+    {
+      "kind": "moon",
+      "label": "Moon above horizon",
+      "detail": "Moon above the geometric horizon",
+      "color": "#d9e5ea",
+      "radius": 112,
+      "strokeWidth": 10,
+      "ranges": [
+        {
+          "startMinute": 343,
+          "endMinute": 1204.7833333333333
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "kind": "astronomical-dawn",
+      "body": "twilight",
+      "marker": "rising",
+      "label": "Astronomical dawn",
+      "time": "2026-08-12T08:18:35.722Z",
+      "timeLabel": "04:19",
+      "minute": 258.5833333333333,
+      "radius": 138,
+      "visibleOnDial": false
+    },
+    {
+      "kind": "nautical-dawn",
+      "body": "twilight",
+      "marker": "rising",
+      "label": "Nautical dawn",
+      "time": "2026-08-12T08:57:39.494Z",
+      "timeLabel": "04:58",
+      "minute": 297.65,
+      "radius": 138,
+      "visibleOnDial": false
+    },
+    {
+      "kind": "civil-dawn",
+      "body": "twilight",
+      "marker": "rising",
+      "label": "Civil dawn",
+      "time": "2026-08-12T09:33:49.152Z",
+      "timeLabel": "05:34",
+      "minute": 333.81666666666666,
+      "radius": 138,
+      "visibleOnDial": false
+    },
+    {
+      "kind": "moonrise",
+      "body": "moon",
+      "marker": "rising",
+      "label": "Moonrise",
+      "time": "2026-08-12T09:43:00.617Z",
+      "timeLabel": "05:43",
+      "minute": 343,
+      "radius": 112,
+      "visibleOnDial": true
+    },
+    {
+      "kind": "sunrise",
+      "body": "sun",
+      "marker": "rising",
+      "label": "Sunrise",
+      "time": "2026-08-12T10:03:30.310Z",
+      "timeLabel": "06:04",
+      "minute": 363.5,
+      "radius": 138,
+      "visibleOnDial": false
+    },
+    {
+      "kind": "lunar-noon",
+      "body": "moon",
+      "marker": "peak",
+      "label": "Lunar noon",
+      "time": "2026-08-12T17:00:56.816Z",
+      "timeLabel": "13:01",
+      "minute": 780.9333333333333,
+      "radius": 112,
+      "visibleOnDial": true
+    },
+    {
+      "kind": "solar-noon",
+      "body": "sun",
+      "marker": "peak",
+      "label": "Solar noon",
+      "time": "2026-08-12T17:01:02.781Z",
+      "timeLabel": "13:01",
+      "minute": 781.0333333333333,
+      "radius": 138,
+      "visibleOnDial": true
+    },
+    {
+      "kind": "sunset",
+      "body": "sun",
+      "marker": "setting",
+      "label": "Sunset",
+      "time": "2026-08-12T23:57:54.999Z",
+      "timeLabel": "19:58",
+      "minute": 1197.9,
+      "radius": 138,
+      "visibleOnDial": false
+    },
+    {
+      "kind": "moonset",
+      "body": "moon",
+      "marker": "setting",
+      "label": "Moonset",
+      "time": "2026-08-13T00:04:47.412Z",
+      "timeLabel": "20:05",
+      "minute": 1204.7833333333333,
+      "radius": 112,
+      "visibleOnDial": true
+    },
+    {
+      "kind": "civil-dusk",
+      "body": "twilight",
+      "marker": "setting",
+      "label": "Civil dusk",
+      "time": "2026-08-13T00:27:29.796Z",
+      "timeLabel": "20:27",
+      "minute": 1227.4833333333333,
+      "radius": 138,
+      "visibleOnDial": false
+    },
+    {
+      "kind": "nautical-dusk",
+      "body": "twilight",
+      "marker": "setting",
+      "label": "Nautical dusk",
+      "time": "2026-08-13T01:03:29.573Z",
+      "timeLabel": "21:03",
+      "minute": 1263.4833333333333,
+      "radius": 138,
+      "visibleOnDial": false
+    },
+    {
+      "kind": "astronomical-dusk",
+      "body": "twilight",
+      "marker": "setting",
+      "label": "Astronomical dusk",
+      "time": "2026-08-13T01:42:18.339Z",
+      "timeLabel": "21:42",
+      "minute": 1302.3,
+      "radius": 138,
+      "visibleOnDial": false
+    }
+  ],
+  "referenceMinute": 720,
+  "currentTimeLabel": "12:00",
+  "nextSolarEvent": {
+    "kind": "sunset",
+    "time": "2026-08-12T23:57:54.999Z",
+    "timeLabel": "19:58",
+    "relativeLabel": "Sunset in 7h 58m"
+  },
+  "moon": {
+    "illumination": 0.00013739825550229678,
+    "phaseAngle": 359.090258964619,
+    "phaseName": "New moon",
+    "markerMinute": 720
+  },
+  "accessibilityText": "DayMan clock for New York on 2026-08-12 in America/New_York. 13.9 hours of daylight. New moon, 0 percent illuminated. Sunset in 7h 58m."
+}

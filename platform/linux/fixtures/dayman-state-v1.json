@@ -1,0 +1,396 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-07-26T16:00:00.000Z",
+  "settings": {
+    "location": {
+      "id": "new-york",
+      "label": "New York",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "timezone": "America/New_York"
+    }
+  },
+  "snapshot": {
+    "schemaVersion": 1,
+    "calculatedAt": "2026-07-26T16:00:00.000Z",
+    "expiresAt": "2026-07-27T04:00:00.000Z",
+    "dateKey": "2026-07-26",
+    "timezone": "America/New_York",
+    "location": {
+      "label": "New York",
+      "latitude": 40.7128,
+      "longitude": -74.006
+    },
+    "size": {
+      "width": 420,
+      "height": 420,
+      "density": 1
+    },
+    "geometry": {
+      "viewBox": 420,
+      "center": 210,
+      "outerRadius": 190,
+      "sunRadius": 138,
+      "moonRadius": 112,
+      "hourLabelRadius": 170,
+      "handStartRadius": 64,
+      "handEndRadius": 181
+    },
+    "palette": {
+      "background": "#0c1424",
+      "face": "#111b2e",
+      "track": "#222a39",
+      "text": "#f2f7fc",
+      "mutedText": "#b8cbe0",
+      "currentHand": "#f2f7fc"
+    },
+    "hourLabels": [
+      {
+        "hour": 0,
+        "label": "00",
+        "minute": 0
+      },
+      {
+        "hour": 3,
+        "label": "03",
+        "minute": 180
+      },
+      {
+        "hour": 6,
+        "label": "06",
+        "minute": 360
+      },
+      {
+        "hour": 9,
+        "label": "09",
+        "minute": 540
+      },
+      {
+        "hour": 12,
+        "label": "12",
+        "minute": 720
+      },
+      {
+        "hour": 15,
+        "label": "15",
+        "minute": 900
+      },
+      {
+        "hour": 18,
+        "label": "18",
+        "minute": 1080
+      },
+      {
+        "hour": 21,
+        "label": "21",
+        "minute": 1260
+      }
+    ],
+    "arcs": [
+      {
+        "kind": "daylight",
+        "label": "Daylight",
+        "detail": "Sun above the horizon",
+        "color": "#ffb552",
+        "radius": 138,
+        "strokeWidth": 15,
+        "ranges": [
+          {
+            "startMinute": 366,
+            "endMinute": 1217
+          }
+        ]
+      },
+      {
+        "kind": "moon",
+        "label": "Moon above horizon",
+        "detail": "Moon above the geometric horizon",
+        "color": "#d9e5ea",
+        "radius": 112,
+        "strokeWidth": 10,
+        "ranges": [
+          {
+            "startMinute": 0,
+            "endMinute": 269
+          },
+          {
+            "startMinute": 1008,
+            "endMinute": 1440
+          }
+        ]
+      }
+    ],
+    "events": [],
+    "referenceMinute": 720,
+    "currentTimeLabel": "12:00",
+    "nextSolarEvent": {
+      "kind": "sunset",
+      "time": "2026-07-27T00:17:00.000Z",
+      "timeLabel": "20:17",
+      "relativeLabel": "Sunset in 8h 17m"
+    },
+    "moon": {
+      "illumination": 0.86,
+      "phaseAngle": 133,
+      "phaseName": "Waxing gibbous",
+      "markerMinute": 720
+    },
+    "accessibilityText": "DayMan clock for New York on 2026-07-26 in America/New_York."
+  },
+  "snapshots": [
+    {
+      "schemaVersion": 1,
+      "calculatedAt": "2026-07-26T16:00:00.000Z",
+      "expiresAt": "2026-07-27T04:00:00.000Z",
+      "dateKey": "2026-07-26",
+      "timezone": "America/New_York",
+      "location": {
+        "label": "New York",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "size": {
+        "width": 420,
+        "height": 420,
+        "density": 1
+      },
+      "geometry": {
+        "viewBox": 420,
+        "center": 210,
+        "outerRadius": 190,
+        "sunRadius": 138,
+        "moonRadius": 112,
+        "hourLabelRadius": 170,
+        "handStartRadius": 64,
+        "handEndRadius": 181
+      },
+      "palette": {
+        "background": "#0c1424",
+        "face": "#111b2e",
+        "track": "#222a39",
+        "text": "#f2f7fc",
+        "mutedText": "#b8cbe0",
+        "currentHand": "#f2f7fc"
+      },
+      "hourLabels": [
+        {
+          "hour": 0,
+          "label": "00",
+          "minute": 0
+        },
+        {
+          "hour": 3,
+          "label": "03",
+          "minute": 180
+        },
+        {
+          "hour": 6,
+          "label": "06",
+          "minute": 360
+        },
+        {
+          "hour": 9,
+          "label": "09",
+          "minute": 540
+        },
+        {
+          "hour": 12,
+          "label": "12",
+          "minute": 720
+        },
+        {
+          "hour": 15,
+          "label": "15",
+          "minute": 900
+        },
+        {
+          "hour": 18,
+          "label": "18",
+          "minute": 1080
+        },
+        {
+          "hour": 21,
+          "label": "21",
+          "minute": 1260
+        }
+      ],
+      "arcs": [
+        {
+          "kind": "daylight",
+          "label": "Daylight",
+          "detail": "Sun above the horizon",
+          "color": "#ffb552",
+          "radius": 138,
+          "strokeWidth": 15,
+          "ranges": [
+            {
+              "startMinute": 366,
+              "endMinute": 1217
+            }
+          ]
+        },
+        {
+          "kind": "moon",
+          "label": "Moon above horizon",
+          "detail": "Moon above the geometric horizon",
+          "color": "#d9e5ea",
+          "radius": 112,
+          "strokeWidth": 10,
+          "ranges": [
+            {
+              "startMinute": 0,
+              "endMinute": 269
+            },
+            {
+              "startMinute": 1008,
+              "endMinute": 1440
+            }
+          ]
+        }
+      ],
+      "events": [],
+      "referenceMinute": 720,
+      "currentTimeLabel": "12:00",
+      "nextSolarEvent": {
+        "kind": "sunset",
+        "time": "2026-07-27T00:17:00.000Z",
+        "timeLabel": "20:17",
+        "relativeLabel": "Sunset in 8h 17m"
+      },
+      "moon": {
+        "illumination": 0.86,
+        "phaseAngle": 133,
+        "phaseName": "Waxing gibbous",
+        "markerMinute": 720
+      },
+      "accessibilityText": "DayMan clock for New York on 2026-07-26 in America/New_York."
+    },
+    {
+      "schemaVersion": 1,
+      "calculatedAt": "2026-07-26T16:00:00.000Z",
+      "expiresAt": "2026-07-28T04:00:00.000Z",
+      "dateKey": "2026-07-27",
+      "timezone": "America/New_York",
+      "location": {
+        "label": "New York",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      },
+      "size": {
+        "width": 420,
+        "height": 420,
+        "density": 1
+      },
+      "geometry": {
+        "viewBox": 420,
+        "center": 210,
+        "outerRadius": 190,
+        "sunRadius": 138,
+        "moonRadius": 112,
+        "hourLabelRadius": 170,
+        "handStartRadius": 64,
+        "handEndRadius": 181
+      },
+      "palette": {
+        "background": "#0c1424",
+        "face": "#111b2e",
+        "track": "#222a39",
+        "text": "#f2f7fc",
+        "mutedText": "#b8cbe0",
+        "currentHand": "#f2f7fc"
+      },
+      "hourLabels": [
+        {
+          "hour": 0,
+          "label": "00",
+          "minute": 0
+        },
+        {
+          "hour": 3,
+          "label": "03",
+          "minute": 180
+        },
+        {
+          "hour": 6,
+          "label": "06",
+          "minute": 360
+        },
+        {
+          "hour": 9,
+          "label": "09",
+          "minute": 540
+        },
+        {
+          "hour": 12,
+          "label": "12",
+          "minute": 720
+        },
+        {
+          "hour": 15,
+          "label": "15",
+          "minute": 900
+        },
+        {
+          "hour": 18,
+          "label": "18",
+          "minute": 1080
+        },
+        {
+          "hour": 21,
+          "label": "21",
+          "minute": 1260
+        }
+      ],
+      "arcs": [
+        {
+          "kind": "daylight",
+          "label": "Daylight",
+          "detail": "Sun above the horizon",
+          "color": "#ffb552",
+          "radius": 138,
+          "strokeWidth": 15,
+          "ranges": [
+            {
+              "startMinute": 366,
+              "endMinute": 1217
+            }
+          ]
+        },
+        {
+          "kind": "moon",
+          "label": "Moon above horizon",
+          "detail": "Moon above the geometric horizon",
+          "color": "#d9e5ea",
+          "radius": 112,
+          "strokeWidth": 10,
+          "ranges": [
+            {
+              "startMinute": 0,
+              "endMinute": 269
+            },
+            {
+              "startMinute": 1008,
+              "endMinute": 1440
+            }
+          ]
+        }
+      ],
+      "events": [],
+      "referenceMinute": 720,
+      "currentTimeLabel": "12:00",
+      "nextSolarEvent": {
+        "kind": "sunset",
+        "time": "2026-07-27T00:17:00.000Z",
+        "timeLabel": "20:17",
+        "relativeLabel": "Sunset in 8h 17m"
+      },
+      "moon": {
+        "illumination": 0.86,
+        "phaseAngle": 133,
+        "phaseName": "Waxing gibbous",
+        "markerMinute": 720
+      },
+      "accessibilityText": "DayMan clock for New York on 2026-07-27 in America/New_York."
+    }
+  ]
+}
