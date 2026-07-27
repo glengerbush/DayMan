@@ -96,11 +96,17 @@ platform/android/scripts/create-signing-bundle.sh
 ```
 
 Back up `dayman-android-signing.tar.gz` securely. Every future update must use
-the same key. Encode it and save the result as the GitHub Actions secret
-`DAYMAN_ANDROID_SIGNING_BUNDLE_BASE64`:
+the same key. Encode it to a text file, then copy the file contents only into
+the GitHub Actions secret `DAYMAN_ANDROID_SIGNING_BUNDLE_BASE64`:
 
 ```sh
-base64 -w 0 dayman-android-signing.tar.gz
+# Linux
+base64 -w 0 dayman-android-signing.tar.gz \
+  > dayman-android-signing-base64.txt
+
+# macOS
+base64 < dayman-android-signing.tar.gz |
+  tr -d '\n' > dayman-android-signing-base64.txt
 ```
 
 The release workflow builds `app-release-unsigned.apk`, aligns it, signs it

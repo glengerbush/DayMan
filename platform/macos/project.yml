@@ -36,6 +36,12 @@ targets:
       path: Configuration/DayMan-Info.plist
     entitlements:
       path: Configuration/DayMan.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - "$(DAYMAN_APP_GROUP)"
+        com.apple.security.network.client: true
+        com.apple.security.personal-information.location: true
     configFiles:
       Debug: Configuration/Development.xcconfig
       Release: Configuration/Release.xcconfig
@@ -68,6 +74,10 @@ targets:
       path: Configuration/DayManWidget-Info.plist
     entitlements:
       path: Configuration/DayManWidget.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - "$(DAYMAN_APP_GROUP)"
     configFiles:
       Debug: Configuration/Development.xcconfig
       Release: Configuration/Release.xcconfig

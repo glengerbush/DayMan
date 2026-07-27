@@ -4,6 +4,11 @@ set -euo pipefail
 output_path=${1:-dayman-android-signing.tar.gz}
 working_dir=$(mktemp -d)
 
+if [[ -e "$output_path" ]]; then
+  echo "error: refusing to overwrite existing signing bundle: $output_path" >&2
+  exit 1
+fi
+
 cleanup() {
   rm -rf -- "$working_dir"
 }

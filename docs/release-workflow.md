@@ -19,24 +19,37 @@ platform/android/scripts/create-signing-bundle.sh
 ```
 
 Keep `dayman-android-signing.tar.gz` private and backed up. Android will reject
-future updates signed with a different key. Encode it as one line:
+future updates signed with a different key. Encode it to a text file using the
+command for your operating system:
 
 ```sh
-base64 -w 0 dayman-android-signing.tar.gz
+# Linux
+base64 -w 0 dayman-android-signing.tar.gz \
+  > dayman-android-signing-base64.txt
+
+# macOS
+base64 < dayman-android-signing.tar.gz |
+  tr -d '\n' > dayman-android-signing-base64.txt
 ```
 
-Save the result as the GitHub Actions repository secret
+Open `dayman-android-signing-base64.txt`, copy its contents only, and save that
+text as the GitHub Actions repository secret
 `DAYMAN_ANDROID_SIGNING_BUNDLE_BASE64`. The workflow builds an unsigned release
 APK, aligns it, signs it with `apksigner`, and verifies the signature. It does
 not use a keystore password, Play Store account, or Android App Bundle.
 
-With GitHub CLI authenticated for this repository, the secret can be set
-directly:
+Before uploading, the text can be checked without revealing the private key:
 
 ```sh
-base64 -w 0 dayman-android-signing.tar.gz |
-  gh secret set DAYMAN_ANDROID_SIGNING_BUNDLE_BASE64
+# Linux
+base64 --decode dayman-android-signing-base64.txt | tar -tzf -
+
+# macOS
+base64 -D < dayman-android-signing-base64.txt | tar -tzf -
 ```
+
+Both checks should list `private-key.pk8` and `certificate.pem`. Do not paste
+terminal prompts, command output, quotes, or Markdown fencing into the secret.
 
 ## macOS distribution
 

@@ -178,12 +178,28 @@ jobs:
           SIGNING_BUNDLE_BASE64: ${{ secrets.DAYMAN_ANDROID_SIGNING_BUNDLE_BASE64 }}
         run: |
           signing_dir="$RUNNER_TEMP/dayman-android-signing"
+          encoded_bundle="$RUNNER_TEMP/dayman-android-signing.b64"
+          signing_archive="$RUNNER_TEMP/dayman-android-signing.tar.gz"
           mkdir -p "$signing_dir"
           printf '%s' "$SIGNING_BUNDLE_BASE64" |
-            base64 --decode > "$RUNNER_TEMP/dayman-android-signing.tar.gz"
-          tar -xzf "$RUNNER_TEMP/dayman-android-signing.tar.gz" -C "$signing_dir"
-          test -f "$signing_dir/private-key.pk8"
-          test -f "$signing_dir/certificate.pem"
+            tr -d '[:space:]' > "$encoded_bundle"
+
+          if ! base64 --decode "$encoded_bundle" > "$signing_archive"; then
+            echo "::error::DAYMAN_ANDROID_SIGNING_BUNDLE_BASE64 is not valid Base64. Copy only the encoded file contents into the secret."
+            exit 1
+          fi
+
+          if ! tar -tzf "$signing_archive" >/dev/null; then
+            echo "::error::The decoded Android signing bundle is not a valid gzip-compressed tar archive."
+            exit 1
+          fi
+
+          tar -xzf "$signing_archive" -C "$signing_dir"
+
+          if [[ ! -f "$signing_dir/private-key.pk8" || ! -f "$signing_dir/certificate.pem" ]]; then
+            echo "::error::The Android signing bundle must contain private-key.pk8 and certificate.pem at its root."
+            exit 1
+          fi
 
       - name: Build unsigned release APK
         working-directory: platform/android
@@ -233,6 +249,7 @@ jobs:
       - name: Remove Android signing material
         if: always()
         run: |
+          rm -f "$RUNNER_TEMP/dayman-android-signing.b64"
           rm -f "$RUNNER_TEMP/dayman-android-signing.tar.gz"
           rm -f "$RUNNER_TEMP/dayman-release-aligned.apk"
           rm -rf "$RUNNER_TEMP/dayman-android-signing"
@@ -270,10 +287,26 @@ jobs:
           package_root="$RUNNER_TEMP/dayman-arch"
           mkdir -p "$package_root"
           cp platform/linux/packaging/aur/PKGBUILD "$package_root/PKGBUILD"
-          git archive \
-            --format=tar.gz \
-            --prefix="DayMan-${VERSION}/" \
-            HEAD > "$package_root/dayman-${VERSION}.tar.gz"
+          tar \
+            -C "$GITHUB_WORKSPACE" \
+            --exclude-vcs \
+            --exclude="./.dayman-release-tooling" \
+            --exclude="./node_modules" \
+            --exclude="./dist" \
+            --exclude="./.svelte-kit" \
+            --exclude="./.vite" \
+            --exclude="./coverage" \
+            --exclude="./platform/android/node_modules" \
+            --exclude="./platform/android/www" \
+            --exclude="./platform/android/android/.gradle" \
+            --exclude="./platform/android/android/*/build" \
+            --exclude="./platform/linux/src-tauri/target" \
+            --exclude="./platform/linux/src-tauri/gen/schemas" \
+            --exclude="./platform/macos/build" \
+            --exclude="./platform/macos/DayMan.xcodeproj" \
+            --transform="s|^\./|DayMan-${VERSION}/|" \
+            -czf "$package_root/dayman-${VERSION}.tar.gz" \
+            .
           sed -i "s/^pkgver=.*/pkgver=${VERSION}/" "$package_root/PKGBUILD"
           sed -i \
             's|^source=.*|source=("$pkgname-$pkgver.tar.gz")|' \

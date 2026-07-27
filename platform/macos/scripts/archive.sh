@@ -56,10 +56,10 @@ cp "${MACOS_ROOT}/Configuration/DayMan.entitlements" "${APP_ENTITLEMENTS}"
 cp "${MACOS_ROOT}/Configuration/DayManWidget.entitlements" "${WIDGET_ENTITLEMENTS}"
 /usr/libexec/PlistBuddy \
   -c "Delete :com.apple.security.application-groups" \
-  "${APP_ENTITLEMENTS}"
+  "${APP_ENTITLEMENTS}" 2>/dev/null || true
 /usr/libexec/PlistBuddy \
   -c "Delete :com.apple.security.application-groups" \
-  "${WIDGET_ENTITLEMENTS}"
+  "${WIDGET_ENTITLEMENTS}" 2>/dev/null || true
 
 codesign \
   --force \
