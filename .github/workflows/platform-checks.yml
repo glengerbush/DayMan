@@ -92,6 +92,9 @@ jobs:
           test -f "${widget_resources}/Assets.car"
           test "$(find "${test_resources}" -name '*.json' -type f | wc -l | tr -d ' ')" -ge 7
 
+      - name: Validate distributable app and widget registration
+        run: platform/macos/scripts/archive.sh
+
   linux:
     name: Linux app and widgets
     runs-on: ubuntu-24.04

@@ -125,7 +125,7 @@ if [[ -f "${MACOS_ROOT}/Resources/Web/index.html" ]]; then
   fi
 
   if grep -RPq \
-    '(?<![.])/(moon-nearside\.webp|data/zcta-2025\.json)' \
+    '(?<![.])/moon-nearside\.webp' \
     "${MACOS_ROOT}/Resources/Web/assets"; then
     echo "error: native JavaScript contains a root-relative bundled asset" >&2
     exit 1
@@ -160,5 +160,9 @@ if grep -Fq 'Delete :com.apple.security.application-groups' \
   echo "error: archive script still mutates App Group entitlements" >&2
   exit 1
 fi
+
+grep -Fq '"${WIDGET_EXECUTABLE}"' "${SCRIPT_DIR}/archive.sh"
+grep -Fq 'pluginkit -a "${WIDGET_APP}"' "${SCRIPT_DIR}/archive.sh"
+grep -Fq 'com.apple.widgetkit-extension' "${SCRIPT_DIR}/archive.sh"
 
 echo "macOS static validation passed (${fixture_count} shared fixtures)."

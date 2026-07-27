@@ -38,11 +38,14 @@ xcodebuild clean build \
 PRODUCT_APP="${DERIVED_DATA_PATH}/Build/Products/Release/DayMan.app"
 EXPORTED_APP="${EXPORT_PATH}/DayMan.app"
 WIDGET_APP="${EXPORTED_APP}/Contents/PlugIns/DayManWidget.appex"
+APP_EXECUTABLE="${EXPORTED_APP}/Contents/MacOS/DayMan"
+WIDGET_EXECUTABLE="${WIDGET_APP}/Contents/MacOS/DayManWidget"
 APP_ENTITLEMENTS="${MACOS_ROOT}/Configuration/DayMan.entitlements"
 WIDGET_ENTITLEMENTS="${MACOS_ROOT}/Configuration/DayManWidget.entitlements"
 SIGNED_APP_ENTITLEMENTS="${BUILD_ROOT}/DayMan.signed.entitlements"
 SIGNED_WIDGET_ENTITLEMENTS="${BUILD_ROOT}/DayManWidget.signed.entitlements"
 SHARED_STATE_PATH="/Library/Application Support/DayMan/"
+WIDGET_BUNDLE_ID="com.glengerbush.DayMan.Widget"
 
 if [[ ! -d "${PRODUCT_APP}" ]]; then
   echo "error: built app not found at ${PRODUCT_APP}" >&2
@@ -55,6 +58,47 @@ if [[ -e "${EXPORTED_APP}" ]]; then
 fi
 ditto "${PRODUCT_APP}" "${EXPORTED_APP}"
 
+if [[ ! -f "${APP_EXECUTABLE}" ]]; then
+  echo "error: app executable not found at ${APP_EXECUTABLE}" >&2
+  exit 1
+fi
+if [[ ! -f "${WIDGET_EXECUTABLE}" ]]; then
+  echo "error: widget executable not found at ${WIDGET_EXECUTABLE}" >&2
+  exit 1
+fi
+if [[ "$(/usr/libexec/PlistBuddy \
+  -c 'Print :CFBundleIdentifier' \
+  "${WIDGET_APP}/Contents/Info.plist")" != "${WIDGET_BUNDLE_ID}" ]]; then
+  echo "error: widget has an unexpected bundle identifier" >&2
+  exit 1
+fi
+if [[ "$(/usr/libexec/PlistBuddy \
+  -c 'Print :NSExtension:NSExtensionPointIdentifier' \
+  "${WIDGET_APP}/Contents/Info.plist")" != "com.apple.widgetkit-extension" ]]; then
+  echo "error: widget does not declare the WidgetKit extension point" >&2
+  exit 1
+fi
+
+APP_ARCHS="$(lipo -archs "${APP_EXECUTABLE}")"
+WIDGET_ARCHS="$(lipo -archs "${WIDGET_EXECUTABLE}")"
+for arch in ${APP_ARCHS}; do
+  if ! tr ' ' '\n' <<< "${WIDGET_ARCHS}" | grep -qx "${arch}"; then
+    echo "error: widget is missing the app architecture ${arch}" >&2
+    exit 1
+  fi
+done
+
+# Extended attributes and AppleDouble files invalidate a sealed nested bundle.
+xattr -cr "${EXPORTED_APP}"
+find "${EXPORTED_APP}" -name '._*' -delete
+
+# Sign inside out. WidgetKit loads the extension executable independently, so it
+# needs its own signature and entitlements before the enclosing appex is sealed.
+codesign \
+  --force \
+  --sign - \
+  --entitlements "${WIDGET_ENTITLEMENTS}" \
+  "${WIDGET_EXECUTABLE}"
 codesign \
   --force \
   --sign - \
@@ -84,6 +128,29 @@ if [[ "$(/usr/libexec/PlistBuddy \
   exit 1
 fi
 
+codesign --verify --strict --verbose=2 "${WIDGET_EXECUTABLE}"
+codesign --verify --strict --verbose=2 "${WIDGET_APP}"
 codesign --verify --deep --strict --verbose=2 "${EXPORTED_APP}"
+
+# PlugInKit can accept `-a` while silently declining to index an invalid
+# extension. Query the database as well so release builds fail before a broken
+# widget reaches a DMG.
+pluginkit -a "${WIDGET_APP}"
+REGISTERED_WIDGETS="$(
+  pluginkit -m -A -D -p com.apple.widgetkit-extension -i "${WIDGET_BUNDLE_ID}"
+)"
+if ! grep -Fq "${WIDGET_BUNDLE_ID}" <<< "${REGISTERED_WIDGETS}"; then
+  echo "error: PlugInKit did not register ${WIDGET_BUNDLE_ID}" >&2
+  echo "PlugInKit query result: ${REGISTERED_WIDGETS:-"(no matches)"}" >&2
+  echo "Recent macOS extension-registration messages:" >&2
+  log show \
+    --last 2m \
+    --style compact \
+    --predicate \
+    '(process == "pkd" OR process == "chronod") AND (eventMessage CONTAINS[c] "DayMan" OR eventMessage CONTAINS[c] "com.glengerbush.DayMan")' \
+    2>&1 | tail -n 200 >&2 || true
+  exit 1
+fi
+pluginkit -r "${WIDGET_APP}" >/dev/null 2>&1 || true
 
 echo "Exported ad-hoc-signed DayMan.app to ${EXPORT_PATH}"

@@ -1,7 +1,7 @@
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
-const [, , inputPath, outputPath = 'public/data/zcta-2025.json'] = process.argv;
+const [, , inputPath, outputPath = 'src/lib/data/zcta-2025.json'] = process.argv;
 
 if (!inputPath) {
   throw new Error('Usage: node scripts/build-zcta-data.mjs <gazetteer.txt> [output.json]');

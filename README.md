@@ -27,12 +27,13 @@ around a 24-hour dial for a chosen location and date. Install as a PWA or if you
 - [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/) with
   [OpenStreetMap](https://www.openstreetmap.org/) tiles
 - Official 2025 U.S. Census ZCTA representative coordinates, transformed into
-  `public/data/zcta-2025.json`
+  `src/lib/data/zcta-2025.json`
 - [`vite-plugin-pwa`](https://vite-pwa-org.netlify.app/) with
   [Workbox](https://developer.chrome.com/docs/workbox/) for installation and
   offline caching
 
-See `public/data/README.md` for the ZIP dataset source and transformation notes.
+See [src/lib/data/README.md](src/lib/data/README.md) for the ZIP dataset source
+and transformation notes.
 See [docs/platform-release-plan.md](docs/platform-release-plan.md) for the PWA
 release checklist and the implemented Android, macOS, and Linux widget
 pathway. The shared native state format is documented in

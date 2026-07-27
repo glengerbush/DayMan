@@ -94,7 +94,7 @@ for (const asset of [
   'pwa-512.png',
   'pwa-maskable-512.png',
   'moon-nearside.webp',
-  'zcta-2025.json'
+  'zcta-2025'
 ]) {
   assert(serviceWorker.includes(asset), `Service worker does not precache ${asset}`);
 }
@@ -107,7 +107,7 @@ assert(
   index.includes(`${expectedBase}registerSW.js`),
   'HTML service-worker registration does not use the deployment base'
 );
-for (const asset of ['moon-nearside.webp', 'data/zcta-2025.json']) {
+for (const asset of ['moon-nearside.webp']) {
   assert(
     generatedJavaScript.includes(`${expectedBase}${asset}`),
     `${asset} URL does not use the deployment base`

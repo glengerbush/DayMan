@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 
 import { describe, expect, test } from 'vitest';
 
-import { detectTimezone } from '../src/lib/location';
+import { detectTimezone, lookupZipCode } from '../src/lib/location';
 
 describe('location lookup', () => {
   test.each([
@@ -16,7 +16,7 @@ describe('location lookup', () => {
 
   test('ships the 2025 Census ZIP representative points', async () => {
     const raw = await readFile(
-      new URL('../public/data/zcta-2025.json', import.meta.url),
+      new URL('../src/lib/data/zcta-2025.json', import.meta.url),
       'utf8'
     );
     const zctas = JSON.parse(raw) as Record<string, [number, number]>;
@@ -24,5 +24,15 @@ describe('location lookup', () => {
     expect(Object.keys(zctas).length).toBe(33_791);
     expect(zctas['10001']).toEqual([40.750649, -73.997298]);
     expect(zctas['90210']).toEqual([34.100517, -118.41463]);
+  });
+
+  test('loads an offline ZIP lookup through the application module graph', async () => {
+    await expect(lookupZipCode('10001')).resolves.toMatchObject({
+      postalCode: '10001',
+      latitude: 40.750649,
+      longitude: -73.997298,
+      timezone: 'America/New_York',
+      source: 'postal'
+    });
   });
 });

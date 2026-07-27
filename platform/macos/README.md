@@ -127,7 +127,9 @@ an Apple Developer account or signing certificate.
    ```
 
 The GitHub release workflow performs the first two steps automatically. Test
-the DMG on a clean macOS account before publishing it.
+the DMG on a clean macOS account before publishing it. The archive step signs
+the widget executable and extension from the inside out, then asks PlugInKit to
+index the result; packaging fails if macOS does not recognize the widget.
 
 The full app and widget use the same narrowly scoped shared file in this
 configuration. Open the app and choose a location before adding the widget so
@@ -141,6 +143,8 @@ the initial snapshot queue exists.
 - Run XCTest and exercise offline app launch.
 - Confirm HTTPS map tiles load when online.
 - Confirm the widget appears in the gallery after the app's first launch.
+- Confirm `pluginkit -m -A -D -i com.glengerbush.DayMan.Widget` lists the
+  installed extension.
 - Confirm the widget reads the app's selected location and changes after a new
   location is saved.
 - Inspect signatures with `codesign --verify --deep --strict --verbose=2`.

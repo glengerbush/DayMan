@@ -7,15 +7,8 @@ type ZctaLookup = Record<string, [number, number]>;
 let zctaPromise: Promise<ZctaLookup> | undefined;
 
 async function loadZctas(): Promise<ZctaLookup> {
-  zctaPromise ??= fetch(
-    `${import.meta.env.BASE_URL}data/zcta-2025.json`
-  )
-    .then(async (response) => {
-      if (!response.ok) {
-        throw new Error('ZIP code data is unavailable');
-      }
-      return (await response.json()) as ZctaLookup;
-    })
+  zctaPromise ??= import('./data/zcta-2025.json')
+    .then(({ default: zctas }) => zctas as unknown as ZctaLookup)
     .catch((error: unknown) => {
       zctaPromise = undefined;
       throw error;

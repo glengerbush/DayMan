@@ -130,11 +130,18 @@
   }
 
   async function searchZip(): Promise<void> {
+    const postalCode = zip.trim();
+    if (!/^[0-9]{5}$/.test(postalCode)) {
+      status = 'Enter a five-digit US ZIP code.';
+      return;
+    }
+
+    zip = postalCode;
     isSearching = true;
     status = 'Looking up ZIP code…';
 
     try {
-      const result = await lookupZipCode(zip);
+      const result = await lookupZipCode(postalCode);
       if (!result) {
         status = 'That ZIP code is not represented in the 2025 Census ZCTA data.';
         return;
@@ -157,6 +164,12 @@
     void searchZip();
   }
 
+  function handleZipKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    void searchZip();
+  }
+
   function applyManualCoordinates(): void {
     const latitude = Number(manualLatitude);
     const longitude = Number(manualLongitude);
@@ -172,6 +185,17 @@
       return;
     }
     updateCoordinates(latitude, longitude, 'coordinates', 'Custom location');
+  }
+
+  function handleCoordinateSubmit(event: SubmitEvent): void {
+    event.preventDefault();
+    applyManualCoordinates();
+  }
+
+  function handleCoordinateKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    applyManualCoordinates();
   }
 
   function pickOnMap(latitude: number, longitude: number): void {
@@ -265,19 +289,19 @@
 
     <div class="method-panel">
       {#if method === 'postal'}
-        <form class="zip-form" onsubmit={handleZipSubmit}>
+        <form class="zip-form" novalidate onsubmit={handleZipSubmit}>
           <label for="zip">US ZIP code</label>
           <div>
             <input
               id="zip"
               bind:value={zip}
               inputmode="numeric"
-              pattern="[0-9]{5}"
               maxlength="5"
               placeholder="e.g. 10001"
               autocomplete="postal-code"
+              onkeydown={handleZipKeydown}
             />
-            <button type="button" disabled={isSearching} onclick={() => void searchZip()}>
+            <button type="submit" disabled={isSearching}>
               {isSearching ? 'Finding…' : 'Find'}
             </button>
           </div>
@@ -294,19 +318,33 @@
           <div class="map-loading">Loading the map…</div>
         {/if}
       {:else}
-        <div class="coordinate-form">
+        <form class="coordinate-form" novalidate onsubmit={handleCoordinateSubmit}>
           <div class="field-pair">
             <label>
               <span>Latitude</span>
-              <input type="number" min="-90" max="90" step="any" bind:value={manualLatitude} />
+              <input
+                type="number"
+                min="-90"
+                max="90"
+                step="any"
+                bind:value={manualLatitude}
+                onkeydown={handleCoordinateKeydown}
+              />
             </label>
             <label>
               <span>Longitude</span>
-              <input type="number" min="-180" max="180" step="any" bind:value={manualLongitude} />
+              <input
+                type="number"
+                min="-180"
+                max="180"
+                step="any"
+                bind:value={manualLongitude}
+                onkeydown={handleCoordinateKeydown}
+              />
             </label>
           </div>
-          <button type="button" onclick={applyManualCoordinates}>Use coordinates</button>
-        </div>
+          <button type="submit">Use coordinates</button>
+        </form>
       {/if}
     </div>
 

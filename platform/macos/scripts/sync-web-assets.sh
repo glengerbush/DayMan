@@ -22,12 +22,12 @@ rsync -a --delete --exclude '.gitkeep' \
   "${REPOSITORY_ROOT}/dist/" \
   "${WEB_DESTINATION}/"
 
-# Vite rewrites imported assets for the relative base, while the PWA's two
-# public-resource references are intentionally root-relative. The native host
-# runs from a file URL, so make only those known references bundle-relative.
+# Vite rewrites imported assets for the relative base. The moon texture is the
+# sole public-resource reference that remains intentionally root-relative, so
+# make that known reference bundle-relative for the native host.
 find "${WEB_DESTINATION}/assets" -type f -name '*.js' -exec \
   perl -pi -e \
-    's{\Q/moon-nearside.webp\E}{./moon-nearside.webp}g; s{\Q/data/zcta-2025.json\E}{./data/zcta-2025.json}g' \
+    's{\Q/moon-nearside.webp\E}{./moon-nearside.webp}g' \
     {} +
 
 # A file-URL WKWebView cannot register a service worker. The native bundle is

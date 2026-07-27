@@ -16,6 +16,9 @@
     const markerElement = document.createElement('div');
     markerElement.className = 'dayman-map-marker';
     markerElement.setAttribute('aria-label', 'Selected location');
+    const markerPin = document.createElement('div');
+    markerPin.className = 'dayman-map-marker-pin';
+    markerElement.append(markerPin);
 
     const map = new maplibregl.Map({
       container: element,
@@ -36,7 +39,11 @@
       }
     });
 
-    const marker = new maplibregl.Marker({ element: markerElement, draggable: true })
+    const marker = new maplibregl.Marker({
+      element: markerElement,
+      anchor: 'bottom',
+      draggable: true
+    })
       .setLngLat([longitude, latitude])
       .addTo(map);
 
@@ -65,7 +72,7 @@
 
 <div class="map-shell">
   <div class="map" {@attach mapAttachment}></div>
-  <p>Tap the map or drag the pin. Map tiles require a connection.</p>
+  <p>Click or tap where the crosshair points, or drag the pin. Map tiles require a connection.</p>
 </div>
 
 <style>
@@ -80,6 +87,14 @@
     height: 16rem;
   }
 
+  :global(.maplibregl-canvas-container.maplibregl-interactive) {
+    cursor: crosshair;
+  }
+
+  :global(.maplibregl-canvas-container.maplibregl-interactive:active) {
+    cursor: move;
+  }
+
   .map-shell p {
     margin: 0;
     padding: 0.7rem 0.9rem;
@@ -88,13 +103,21 @@
   }
 
   :global(.dayman-map-marker) {
+    display: grid;
+    width: 2.25rem;
+    height: 2.25rem;
+    place-items: center;
+    cursor: grab;
+  }
+
+  :global(.dayman-map-marker-pin) {
+    box-sizing: border-box;
     width: 1.6rem;
     height: 1.6rem;
     border: 0.3rem solid #fff6df;
     border-radius: 50% 50% 50% 0;
     background: #e9814f;
     box-shadow: 0 4px 12px rgb(23 30 43 / 0.4);
-    cursor: grab;
     transform: rotate(-45deg);
   }
 
