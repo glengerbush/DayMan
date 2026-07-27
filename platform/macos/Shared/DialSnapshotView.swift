@@ -184,14 +184,22 @@ struct DialSnapshotView: View {
         let angle = snapshot.moon.phaseAngle
             .truncatingRemainder(dividingBy: 360)
         switch angle < 0 ? angle + 360 : angle {
-        case 0 ..< 22.5, 337.5 ..< 360: "moonphase.new.moon"
-        case 22.5 ..< 67.5: "moonphase.waxing.crescent"
-        case 67.5 ..< 112.5: "moonphase.first.quarter"
-        case 112.5 ..< 157.5: "moonphase.waxing.gibbous"
-        case 157.5 ..< 202.5: "moonphase.full.moon"
-        case 202.5 ..< 247.5: "moonphase.waning.gibbous"
-        case 247.5 ..< 292.5: "moonphase.last.quarter"
-        default: "moonphase.waning.crescent"
+        case 0 ..< 22.5, 337.5 ..< 360:
+            return "moonphase.new.moon"
+        case 22.5 ..< 67.5:
+            return "moonphase.waxing.crescent"
+        case 67.5 ..< 112.5:
+            return "moonphase.first.quarter"
+        case 112.5 ..< 157.5:
+            return "moonphase.waxing.gibbous"
+        case 157.5 ..< 202.5:
+            return "moonphase.full.moon"
+        case 202.5 ..< 247.5:
+            return "moonphase.waning.gibbous"
+        case 247.5 ..< 292.5:
+            return "moonphase.last.quarter"
+        default:
+            return "moonphase.waning.crescent"
         }
     }
 }
