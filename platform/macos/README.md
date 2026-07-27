@@ -97,7 +97,7 @@ size and verify:
 
 - DST spring-forward and fall-back days
 - polar day and polar night
-- new, quarter, and full Moon phases
+- crescent, quarter, gibbous, and full Moon phases at varied illumination
 - a location/timezone update while the widget gallery is open
 - leaving the app closed while the widget crosses local midnight
 - full-surface click-through from every supported widget family

@@ -45,6 +45,13 @@ data class ClockSnapshot(
         arcs.firstOrNull { it.kind == kind }?.ranges.orEmpty()
 
     fun event(kind: String): ClockEvent? = events.firstOrNull { it.kind == kind }
+
+    fun currentMinuteAt(instant: Instant): Double {
+        val localTime = instant.atZone(ZoneId.of(timezone)).toLocalTime()
+        return localTime.hour * 60.0 +
+            localTime.minute +
+            localTime.second / 60.0
+    }
 }
 
 data class PlatformStateEnvelope(

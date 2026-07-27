@@ -71,11 +71,11 @@ raw envelope to app-private `SharedPreferences`, queues an immediate widget
 update, and schedules the next saved-timezone midnight refresh. No account,
 server, or network connection is used by the widget.
 
-The renderer intentionally omits a live current-time hand. Android widget
-updates are opportunistic, so a minute hand would imply precision the host
-cannot guarantee. The center shows the snapshot date and fixed sunrise/sunset
-times rather than a relative countdown that could become stale. Sun, twilight,
-Moon, and event geometry remains fixed for the snapshot date.
+The renderer draws a dotted current-time hand using the saved location's
+timezone. It advances whenever Android grants a widget refresh, so it can trail
+the actual time between refreshes. The center shows the snapshot date and fixed
+sunrise/sunset times rather than a relative countdown that could become stale.
+Sun, twilight, Moon, and event geometry remains fixed for the snapshot date.
 
 Refreshes are requested:
 

@@ -99,10 +99,10 @@ const renderer = await readFile(
   join(root, "android/app/src/main/java/com/glengerbush/dayman/widget/DialRenderer.kt"),
   "utf8",
 );
-if (renderer.includes("currentTime") || renderer.includes("minuteHand")) {
-  throw new Error("Widget renderer must not imply an unsupported live minute hand");
-}
 for (const marker of [
+  "drawCurrentTimeHand",
+  "snapshot.currentMinuteAt(instant)",
+  "DashPathEffect",
   "drawHourTicksAndLabels",
   '"Rise $sunrise  •  Set $sunset"',
 ]) {

@@ -83,13 +83,17 @@ struct DialSnapshotView: View {
                         )
                 }
 
-                Image(systemName: moonPhaseSymbol)
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(
-                        Color(hex: "#f2f7fc"),
-                        Color(hex: snapshot.palette.background)
+                MoonPhaseGlyph(
+                    illumination: snapshot.moon.illumination,
+                    waxing: normalizedMoonPhaseAngle <= 180,
+                    lightColor: Color(hex: "#d9e5ea"),
+                    darkColor: Color(hex: "#050b14"),
+                    outlineColor: Color(hex: "#8fa0a8")
+                )
+                    .frame(
+                        width: max(14, side * 0.055),
+                        height: max(14, side * 0.055)
                     )
-                    .font(.system(size: max(12, side * 0.05), weight: .regular))
                     .position(
                         point(
                             minute: snapshot.moon.markerMinute,
@@ -180,27 +184,75 @@ struct DialSnapshotView: View {
         return formatter.string(from: date)
     }
 
-    private var moonPhaseSymbol: String {
+    private var normalizedMoonPhaseAngle: Double {
         let angle = snapshot.moon.phaseAngle
             .truncatingRemainder(dividingBy: 360)
-        switch angle < 0 ? angle + 360 : angle {
-        case 0 ..< 22.5, 337.5 ..< 360:
-            return "moonphase.new.moon"
-        case 22.5 ..< 67.5:
-            return "moonphase.waxing.crescent"
-        case 67.5 ..< 112.5:
-            return "moonphase.first.quarter"
-        case 112.5 ..< 157.5:
-            return "moonphase.waxing.gibbous"
-        case 157.5 ..< 202.5:
-            return "moonphase.full.moon"
-        case 202.5 ..< 247.5:
-            return "moonphase.waning.gibbous"
-        case 247.5 ..< 292.5:
-            return "moonphase.last.quarter"
-        default:
-            return "moonphase.waning.crescent"
+        return angle < 0 ? angle + 360 : angle
+    }
+}
+
+/// A compact Moon marker whose lit area continuously follows the snapshot's
+/// illumination instead of rounding to one of the eight system phase symbols.
+private struct MoonPhaseGlyph: View {
+    let illumination: Double
+    let waxing: Bool
+    let lightColor: Color
+    let darkColor: Color
+    let outlineColor: Color
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(darkColor)
+
+            MoonIlluminationShape(
+                illumination: illumination,
+                waxing: waxing
+            )
+            .fill(lightColor)
+
+            Circle()
+                .stroke(outlineColor, lineWidth: 0.8)
         }
+    }
+}
+
+/// Projects the day/night terminator onto the lunar disc. At 94%
+/// illumination the remaining 6% shadow stays visible rather than being
+/// rounded to a full-Moon icon.
+private struct MoonIlluminationShape: Shape {
+    let illumination: Double
+    let waxing: Bool
+
+    func path(in rect: CGRect) -> Path {
+        let litFraction = min(max(illumination, 0), 1)
+        let radius = min(rect.width, rect.height) / 2
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let terminator = CGFloat(1 - 2 * litFraction)
+        let sampleCount = 64
+        var path = Path()
+
+        for step in 0 ... sampleCount {
+            let y = -radius + 2 * radius * CGFloat(step) / CGFloat(sampleCount)
+            let extent = sqrt(max(0, radius * radius - y * y))
+            let x = waxing ? extent : -terminator * extent
+            let point = CGPoint(x: center.x + x, y: center.y + y)
+            if step == 0 {
+                path.move(to: point)
+            } else {
+                path.addLine(to: point)
+            }
+        }
+
+        for step in stride(from: sampleCount, through: 0, by: -1) {
+            let y = -radius + 2 * radius * CGFloat(step) / CGFloat(sampleCount)
+            let extent = sqrt(max(0, radius * radius - y * y))
+            let x = waxing ? terminator * extent : -extent
+            path.addLine(to: CGPoint(x: center.x + x, y: center.y + y))
+        }
+
+        path.closeSubpath()
+        return path
     }
 }
 

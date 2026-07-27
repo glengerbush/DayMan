@@ -19,17 +19,23 @@ import androidx.glance.layout.fillMaxSize
 import com.glengerbush.dayman.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.Instant
 
 class DayManWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val snapshot = WidgetStateRepository(context).load()
+        val renderedAt = Instant.now()
+        val snapshot = WidgetStateRepository(context).load(renderedAt)
         val moonTexture = withContext(Dispatchers.IO) {
             runCatching {
                 context.assets.open("public/moon-nearside.webp").use(BitmapFactory::decodeStream)
             }.getOrNull()
         }
         val bitmap = withContext(Dispatchers.Default) {
-            DialRenderer.render(snapshot, moonTexture = moonTexture)
+            DialRenderer.render(
+                snapshot,
+                moonTexture = moonTexture,
+                instant = renderedAt,
+            )
         }
         provideContent {
             WidgetImage(

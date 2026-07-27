@@ -5,11 +5,13 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
+import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
+import java.time.Instant
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -32,6 +34,7 @@ object DialRenderer {
         snapshot: ClockSnapshot?,
         sizePx: Int = 720,
         moonTexture: Bitmap? = null,
+        instant: Instant = Instant.now(),
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -75,6 +78,14 @@ object DialRenderer {
             paint,
         )
 
+        drawCurrentTimeHand(
+            canvas,
+            center,
+            radius,
+            snapshot.currentMinuteAt(instant),
+            sizePx,
+            paint,
+        )
         drawHourTicksAndLabels(canvas, center, radius, sizePx, paint)
         snapshot.event("solar-noon")?.let {
             drawEventDot(canvas, center, radius, it.minute, DAYLIGHT, sizePx, paint)
@@ -93,6 +104,38 @@ object DialRenderer {
         )
         drawCenterText(canvas, snapshot, center, sizePx, paint)
         return bitmap
+    }
+
+    private fun drawCurrentTimeHand(
+        canvas: Canvas,
+        center: Float,
+        radius: Float,
+        minute: Double,
+        size: Int,
+        paint: Paint,
+    ) {
+        val angle = minute * 2.0 * PI / 1440.0 - PI / 2.0
+        val startRadius = radius * 0.45f
+        val endRadius = radius + size * 0.068f
+
+        paint.style = Paint.Style.STROKE
+        paint.strokeCap = Paint.Cap.ROUND
+        paint.strokeWidth = size * 0.006f
+        paint.color = Color.parseColor(TEXT)
+        paint.alpha = 230
+        paint.pathEffect = DashPathEffect(
+            floatArrayOf(size * 0.011f, size * 0.009f),
+            0f,
+        )
+        canvas.drawLine(
+            center + cos(angle).toFloat() * startRadius,
+            center + sin(angle).toFloat() * startRadius,
+            center + cos(angle).toFloat() * endRadius,
+            center + sin(angle).toFloat() * endRadius,
+            paint,
+        )
+        paint.pathEffect = null
+        paint.alpha = 255
     }
 
     private fun drawRanges(

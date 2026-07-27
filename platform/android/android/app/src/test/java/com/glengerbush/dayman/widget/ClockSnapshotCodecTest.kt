@@ -19,6 +19,17 @@ class ClockSnapshotCodecTest {
     }
 
     @Test
+    fun calculatesCurrentHandMinuteInSavedTimezone() {
+        val snapshot = ClockSnapshotCodec.decode(resource("new-york-dst-spring.json"))
+
+        assertEquals(
+            8 * 60.0,
+            snapshot.currentMinuteAt(Instant.parse("2026-03-08T12:00:00Z")),
+            0.001,
+        )
+    }
+
+    @Test
     fun decodesSharedPolarFixtures() {
         val day = ClockSnapshotCodec.decode(resource("tromso-polar-day.json"))
         val night = ClockSnapshotCodec.decode(resource("tromso-polar-night.json"))
