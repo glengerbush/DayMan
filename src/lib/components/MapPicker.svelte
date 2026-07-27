@@ -1,6 +1,7 @@
 <script lang="ts">
   import * as maplibregl from 'maplibre-gl';
   import type { MapMouseEvent } from 'maplibre-gl';
+  import { untrack } from 'svelte';
   import type { Attachment } from 'svelte/attachments';
   import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -13,6 +14,12 @@
   let { latitude, longitude, onpick }: Props = $props();
 
   const mapAttachment: Attachment<HTMLDivElement> = (element) => {
+    // Reading reactive props during attachment setup would rebuild the map
+    // whenever the pin moves, resetting the user's camera and zoom.
+    const initialPosition = untrack(() => ({
+      latitude,
+      longitude
+    }));
     const markerElement = document.createElement('div');
     markerElement.className = 'dayman-map-marker';
     markerElement.setAttribute('aria-label', 'Selected location');
@@ -22,7 +29,7 @@
 
     const map = new maplibregl.Map({
       container: element,
-      center: [longitude, latitude],
+      center: [initialPosition.longitude, initialPosition.latitude],
       zoom: 7,
       attributionControl: false,
       style: {
@@ -44,7 +51,7 @@
       anchor: 'bottom',
       draggable: true
     })
-      .setLngLat([longitude, latitude])
+      .setLngLat([initialPosition.longitude, initialPosition.latitude])
       .addTo(map);
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');

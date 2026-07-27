@@ -22,6 +22,12 @@ env:
   RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
 jobs:
+  validation:
+    name: Validate release source
+    uses: ./.github/workflows/platform-checks.yml
+    with:
+      ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
   prepare:
     name: Prepare release
     runs-on: ubuntu-latest
@@ -76,7 +82,9 @@ jobs:
 
   linux:
     name: Package Linux
-    needs: prepare
+    needs:
+      - validation
+      - prepare
     runs-on: ubuntu-22.04
     steps:
       - name: Check out release tag
@@ -145,8 +153,12 @@ jobs:
 
   android:
     name: Package Android
-    needs: prepare
-    if: needs.prepare.outputs.android_signing == 'true'
+    needs:
+      - validation
+      - prepare
+    if: >-
+      needs.validation.result == 'success' &&
+      needs.prepare.outputs.android_signing == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Check out release tag
@@ -256,7 +268,9 @@ jobs:
 
   arch:
     name: Package Arch Linux
-    needs: prepare
+    needs:
+      - validation
+      - prepare
     runs-on: ubuntu-latest
     container: archlinux:base-devel
     steps:
@@ -341,7 +355,9 @@ jobs:
 
   macos:
     name: Package macOS
-    needs: prepare
+    needs:
+      - validation
+      - prepare
     runs-on: macos-latest
     steps:
       - name: Check out release tag
@@ -417,6 +433,7 @@ jobs:
   publish:
     name: Publish GitHub Release
     needs:
+      - validation
       - prepare
       - linux
       - arch
@@ -424,6 +441,7 @@ jobs:
       - macos
     if: >-
       always() &&
+      needs.validation.result == 'success' &&
       needs.prepare.result == 'success' &&
       needs.linux.result == 'success' &&
       needs.arch.result == 'success' &&

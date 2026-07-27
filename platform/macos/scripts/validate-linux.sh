@@ -52,6 +52,22 @@ targets.each do |name, target|
   )
 end
 
+{
+  "DayMan" => "Configuration/DayMan-Info.plist",
+  "DayManWidget" => "Configuration/DayManWidget-Info.plist"
+}.each do |target_name, plist_path|
+  target = targets.fetch(target_name)
+  if target.key?("info")
+    abort(
+      "error: #{target_name} must reference its hand-written Info.plist " \
+      "instead of asking XcodeGen to overwrite it"
+    )
+  end
+  unless target.dig("settings", "base", "INFOPLIST_FILE") == plist_path
+    abort("error: #{target_name} must set INFOPLIST_FILE to #{plist_path}")
+  end
+end
+
 def require_resource(targets, target_name, path, type: nil, excludes: [])
   target = targets.fetch(target_name)
   entry = target.fetch("sources").find do |source|
