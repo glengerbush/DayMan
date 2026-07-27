@@ -3,7 +3,6 @@
 DAYMAN_BUNDLE_ID = com.glengerbush.DayMan
 DAYMAN_WIDGET_BUNDLE_ID = com.glengerbush.DayMan.Widget
 DAYMAN_APP_GROUP = group.com.glengerbush.DayMan
-DAYMAN_DEVELOPMENT_TEAM =
 MARKETING_VERSION = 0.1.0
 CURRENT_PROJECT_VERSION = 1
 

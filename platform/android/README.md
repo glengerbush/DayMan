@@ -83,43 +83,30 @@ Refreshes are requested:
 - just after midnight in the saved timezone
 - after boot, date/time/timezone changes, app replacement, and widget enable
 
-## Signing direct APKs and app bundles
+## Signing the direct-install APK
 
-Create a private release key outside this repository:
+Android requires every installable APK to have a stable signature, even when
+the APK never goes through an app store. DayMan uses a passwordless PKCS#8 key
+and certificate bundle rather than a password-protected keystore.
 
-```sh
-keytool -genkeypair -v -keystore dayman-release.jks \
-  -alias dayman -keyalg RSA -keysize 4096 -validity 10000
-```
-
-Export the four signing values only in the release environment:
+Generate that bundle once, outside the repository:
 
 ```sh
-export DAYMAN_ANDROID_KEYSTORE=/absolute/private/path/dayman-release.jks
-export DAYMAN_ANDROID_STORE_PASSWORD='...'
-export DAYMAN_ANDROID_KEY_ALIAS=dayman
-export DAYMAN_ANDROID_KEY_PASSWORD='...'
-export DAYMAN_ANDROID_VERSION_CODE=1
-export DAYMAN_ANDROID_VERSION_NAME=0.1.0
+platform/android/scripts/create-signing-bundle.sh
 ```
 
-Then run:
+Back up `dayman-android-signing.tar.gz` securely. Every future update must use
+the same key. Encode it and save the result as the GitHub Actions secret
+`DAYMAN_ANDROID_SIGNING_BUNDLE_BASE64`:
 
 ```sh
-npm run release:apk
-npm run release:aab
+base64 -w 0 dayman-android-signing.tar.gz
 ```
 
-Signed outputs (when all signing variables are set) are:
-
-- `android/app/build/outputs/apk/release/app-release.apk`
-- `android/app/build/outputs/bundle/release/app-release.aab`
-
-If all four signing variables are absent, Gradle can still create an unsigned
-release artifact such as `app-release-unsigned.apk` for CI validation. A
-partial signing configuration fails early. Never commit a keystore or passwords.
-Direct downloads should publish the signed APK alongside a SHA-256 checksum;
-the AAB is retained for a possible future Play release.
+The release workflow builds `app-release-unsigned.apk`, aligns it, signs it
+with Android SDK `apksigner`, verifies the signature, and publishes the
+direct-install APK with a SHA-256 checksum. No Play Store account, password, or
+app bundle is involved.
 
 ## Validation
 

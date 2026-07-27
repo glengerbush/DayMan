@@ -2,19 +2,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 
-def releaseStorePath = System.getenv("DAYMAN_ANDROID_KEYSTORE")
-def releaseStorePassword = System.getenv("DAYMAN_ANDROID_STORE_PASSWORD")
-def releaseKeyAlias = System.getenv("DAYMAN_ANDROID_KEY_ALIAS")
-def releaseKeyPassword = System.getenv("DAYMAN_ANDROID_KEY_PASSWORD")
-def releaseSigningValues = [releaseStorePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword]
-def releaseSigningConfigured = releaseSigningValues.every { it != null && !it.isBlank() }
-def releaseSigningPartiallyConfigured = releaseSigningValues.any { it != null && !it.isBlank() }
-if (releaseSigningPartiallyConfigured && !releaseSigningConfigured) {
-    throw new GradleException(
-        "Android release signing is partially configured. Set all four DAYMAN_ANDROID_* signing variables or none."
-    )
-}
-
 android {
     namespace = "com.glengerbush.dayman"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -28,17 +15,6 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    signingConfigs {
-        release {
-            if (releaseSigningConfigured) {
-                storeFile file(releaseStorePath)
-                storePassword releaseStorePassword
-                keyAlias releaseKeyAlias
-                keyPassword releaseKeyPassword
-            }
-        }
-    }
-
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
@@ -48,9 +24,6 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (releaseSigningConfigured) {
-                signingConfig signingConfigs.release
-            }
         }
     }
 

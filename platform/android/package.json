@@ -10,8 +10,7 @@
     "test": "npm run validate && npm run sync && cd android && ./gradlew testDebugUnitTest",
     "android:open": "npm run sync && cap open android",
     "android:debug": "npm run sync && cd android && ./gradlew assembleDebug",
-    "release:apk": "npm run sync && cd android && ./gradlew assembleRelease",
-    "release:aab": "npm run sync && cd android && ./gradlew bundleRelease"
+    "release:apk": "npm run sync && cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
     "@capacitor/android": "8.4.2",

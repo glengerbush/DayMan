@@ -6,6 +6,7 @@ linux_dir=$(cd -- "$script_dir/.." && pwd)
 repo_root=$(cd -- "$linux_dir/../.." && pwd)
 output_dir=${DAYMAN_RELEASE_DIR:-"$repo_root/release/linux"}
 bundles=${1:-deb,rpm,appimage}
+version=${DAYMAN_VERSION_NAME:-0.1.0}
 
 if [[ "$bundles" == "--help" || "$bundles" == "-h" ]]; then
   echo "Usage: $0 [deb,rpm,appimage]"
@@ -22,14 +23,17 @@ cd "$repo_root"
 npm run build:native
 
 cd "$linux_dir"
-cargo tauri build --bundles "$bundles"
+cargo tauri build \
+  --ci \
+  --bundles "$bundles" \
+  --config "{\"version\":\"$version\"}"
 
 mkdir -p "$output_dir"
 find "$linux_dir/src-tauri/target/release/bundle" -maxdepth 3 -type f \
   \( -name '*.deb' -o -name '*.rpm' -o -name '*.AppImage' \) \
   -exec cp -v '{}' "$output_dir/" \;
 
-widget_archive="$output_dir/dayman-widgets-0.1.0.tar.gz"
+widget_archive="$output_dir/dayman-widgets-$version.tar.gz"
 tar -C "$linux_dir" -czf "$widget_archive" \
   plasma gnome scripts/install-widgets.sh scripts/uninstall-widgets.sh \
   schema/clock-snapshot-v1.schema.json schema/platform-state-v1.schema.json

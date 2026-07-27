@@ -33,7 +33,6 @@ the widget asks the user to open DayMan.
 - Current Xcode command-line tools
 - Node.js matching the root `package.json`
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen)
-- An Apple Developer Team with an App Group for device/distribution testing
 
 Xcode and WidgetKit are Apple-only, so the Swift targets cannot be compiled on
 Linux. The asset generation, web build, JSON validation, plist validation, and
@@ -63,8 +62,7 @@ The bootstrap script:
 4. derives the complete macOS icon set from the existing SVG;
 5. generates the Xcode project.
 
-In Xcode, select the `DayMan` scheme and your development team. Register these
-identifiers in the Apple Developer portal and use the same values locally:
+The source uses these stable identifiers:
 
 ```text
 App:       com.glengerbush.DayMan
@@ -72,18 +70,9 @@ Extension: com.glengerbush.DayMan.Widget
 App Group: group.com.glengerbush.DayMan
 ```
 
-Override the defaults without editing the shared configuration by creating
-`Configuration/Local.xcconfig`:
-
-```xcconfig
-DAYMAN_DEVELOPMENT_TEAM = ABCDE12345
-DAYMAN_BUNDLE_ID = com.example.DayMan
-DAYMAN_WIDGET_BUNDLE_ID = com.example.DayMan.Widget
-DAYMAN_APP_GROUP = group.com.example.DayMan
-```
-
-The three identifiers and both entitlements must agree exactly. The widget
-cannot read the app's state when the App Group is absent or mismatched.
+The ad-hoc release build strips the App Group entitlement because it cannot be
+authorized without Apple provisioning. Consequently, the full app runs but
+the included widget cannot read the app's saved state.
 
 ## Tests
 
@@ -114,46 +103,45 @@ size and verify:
 
 ## Direct-download release
 
-Direct distribution still requires Developer ID signing and Apple
-notarization. No App Store listing is involved.
+DayMan is distributed as an ad-hoc-signed, unnotarized DMG. It does not require
+an Apple Developer account or signing certificate.
 
-1. Store notarization credentials in the login keychain (never in the repo):
-
-   ```sh
-   xcrun notarytool store-credentials dayman-notary \
-     --apple-id you@example.com \
-     --team-id ABCDE12345 \
-     --password app-specific-password
-   ```
-
-2. Archive and export:
+1. Build and ad-hoc sign the app:
 
    ```sh
-   DAYMAN_DEVELOPMENT_TEAM=ABCDE12345 \
-     platform/macos/scripts/archive.sh
+   platform/macos/scripts/archive.sh
    ```
 
-3. Create, submit, staple, and verify the DMG:
+2. Package the DMG and checksum:
 
    ```sh
-   DAYMAN_NOTARY_PROFILE=dayman-notary \
-     platform/macos/scripts/notarize-dmg.sh
+   platform/macos/scripts/package-dmg.sh
    ```
 
-4. Test the DMG on a clean macOS account, verify the Gatekeeper assessment,
-   install the widget, and publish the DMG plus a SHA-256 checksum over HTTPS.
+3. After dragging DayMan into Applications, clear its quarantine attributes
+   before opening it:
 
-The scripts intentionally contain no certificate names, team IDs, Apple IDs,
-passwords, or keychain profiles. CI should inject those values from secrets.
+   ```sh
+   xattr -cr /Applications/DayMan.app
+   ```
+
+The GitHub release workflow performs the first two steps automatically. Test
+the DMG on a clean macOS account before publishing it.
+
+The full app works in this configuration. Apple requires a provisioned App
+Group before the WidgetKit extension can read the app's saved location. The
+ad-hoc build therefore strips that restricted entitlement and the widget
+remains unconfigured. Replacing the widget's shared-container architecture
+would be necessary to support it without an Apple developer account.
 
 ## Release checklist
 
 - Re-run bootstrap so the embedded web bundle matches the release commit.
 - Update `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`.
-- Confirm both targets show the intended Team and App Group capability.
+- Confirm the app and widget are both ad-hoc signed.
 - Run XCTest and exercise offline app launch.
 - Confirm HTTPS map tiles load when online.
-- Confirm location/timezone changes reload the widget timeline.
+- Confirm the unprovisioned widget fails closed with its configuration prompt.
 - Inspect signatures with `codesign --verify --deep --strict --verbose=2`.
-- Notarize, staple, and assess the exact DMG being published.
+- Install the DMG and verify the documented `xattr -cr` step.
 - Publish its checksum and keep the PWA install option available.

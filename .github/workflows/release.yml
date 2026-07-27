@@ -1,0 +1,438 @@
+name: Build release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag (for example, v0.1.0)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+jobs:
+  prepare:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      android_signing: ${{ steps.signing.outputs.android }}
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Validate release tag
+        id: release
+        shell: bash
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tags must use the form vMAJOR.MINOR.PATCH."
+            exit 1
+          fi
+
+          if ! git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            echo "::error::The tag $RELEASE_TAG does not exist."
+            exit 1
+          fi
+
+          echo "version=${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Detect signing credentials
+        id: signing
+        shell: bash
+        env:
+          ANDROID_SIGNING_BUNDLE: ${{ secrets.DAYMAN_ANDROID_SIGNING_BUNDLE_BASE64 }}
+        run: |
+          android=false
+
+          if [[ -n "$ANDROID_SIGNING_BUNDLE" ]]; then
+            android=true
+          fi
+
+          echo "android=$android" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Signing availability"
+            echo
+            echo "- Android signed APK: \`$android\`"
+            echo "- macOS ad-hoc-signed DMG: \`true\`"
+            echo
+            echo "Android is skipped when its signing-bundle secret is absent."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  linux:
+    name: Package Linux
+    needs: prepare
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Check out current release tooling
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          path: .dayman-release-tooling
+
+      - name: Update release tooling for an existing tag
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          cp \
+            .dayman-release-tooling/platform/linux/scripts/package-native.sh \
+            platform/linux/scripts/package-native.sh
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            appstream \
+            build-essential \
+            curl \
+            desktop-file-utils \
+            file \
+            jq \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libssl-dev \
+            libwebkit2gtk-4.1-dev \
+            libxdo-dev \
+            patchelf \
+            rpm \
+            wget
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2" --locked
+
+      - name: Build Linux packages
+        env:
+          DAYMAN_RELEASE_DIR: ${{ github.workspace }}/release/linux
+          DAYMAN_VERSION_NAME: ${{ needs.prepare.outputs.version }}
+        run: platform/linux/scripts/package-native.sh
+
+      - name: Upload Linux release files
+        uses: actions/upload-artifact@v4
+        with:
+          name: dayman-linux
+          path: release/linux/*
+          if-no-files-found: error
+          retention-days: 14
+
+  android:
+    name: Package Android
+    needs: prepare
+    if: needs.prepare.outputs.android_signing == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm ci --prefix platform/android
+
+      - name: Restore Android signing bundle
+        shell: bash
+        env:
+          SIGNING_BUNDLE_BASE64: ${{ secrets.DAYMAN_ANDROID_SIGNING_BUNDLE_BASE64 }}
+        run: |
+          signing_dir="$RUNNER_TEMP/dayman-android-signing"
+          mkdir -p "$signing_dir"
+          printf '%s' "$SIGNING_BUNDLE_BASE64" |
+            base64 --decode > "$RUNNER_TEMP/dayman-android-signing.tar.gz"
+          tar -xzf "$RUNNER_TEMP/dayman-android-signing.tar.gz" -C "$signing_dir"
+          test -f "$signing_dir/private-key.pk8"
+          test -f "$signing_dir/certificate.pem"
+
+      - name: Build unsigned release APK
+        working-directory: platform/android
+        env:
+          DAYMAN_ANDROID_VERSION_CODE: ${{ github.run_number }}
+          DAYMAN_ANDROID_VERSION_NAME: ${{ needs.prepare.outputs.version }}
+        run: npm run release:apk
+
+      - name: Align and sign direct-install APK
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          mkdir -p release/android
+          filename="DayMan-${VERSION}-android.apk"
+          unsigned_apk="platform/android/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          aligned_apk="$RUNNER_TEMP/dayman-release-aligned.apk"
+          signing_dir="$RUNNER_TEMP/dayman-android-signing"
+          build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+
+          test -f "$unsigned_apk"
+          test -n "$build_tools"
+          "$build_tools/zipalign" -p -f 4 "$unsigned_apk" "$aligned_apk"
+          "$build_tools/apksigner" sign \
+            --key "$signing_dir/private-key.pk8" \
+            --cert "$signing_dir/certificate.pem" \
+            --out "release/android/$filename" \
+            "$aligned_apk"
+          "$build_tools/apksigner" verify \
+            --verbose \
+            --print-certs \
+            "release/android/$filename"
+
+          (
+            cd release/android
+            sha256sum "$filename" > "${filename}.sha256"
+          )
+
+      - name: Upload Android release files
+        uses: actions/upload-artifact@v4
+        with:
+          name: dayman-android
+          path: release/android/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove Android signing material
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/dayman-android-signing.tar.gz"
+          rm -f "$RUNNER_TEMP/dayman-release-aligned.apk"
+          rm -rf "$RUNNER_TEMP/dayman-android-signing"
+
+  arch:
+    name: Package Arch Linux
+    needs: prepare
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Install Arch build dependencies
+        run: |
+          pacman -Syu --noconfirm \
+            appstream \
+            desktop-file-utils \
+            git \
+            gtk3 \
+            jq \
+            nodejs \
+            npm \
+            patchelf \
+            rust \
+            webkit2gtk-4.1
+
+      - name: Prepare local Arch package source
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          package_root="$RUNNER_TEMP/dayman-arch"
+          mkdir -p "$package_root"
+          cp platform/linux/packaging/aur/PKGBUILD "$package_root/PKGBUILD"
+          git archive \
+            --format=tar.gz \
+            --prefix="DayMan-${VERSION}/" \
+            HEAD > "$package_root/dayman-${VERSION}.tar.gz"
+          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" "$package_root/PKGBUILD"
+          sed -i \
+            's|^source=.*|source=("$pkgname-$pkgver.tar.gz")|' \
+            "$package_root/PKGBUILD"
+
+          useradd --create-home builder
+          chown -R builder:builder "$package_root"
+
+      - name: Build Arch package
+        shell: bash
+        run: |
+          package_root="$RUNNER_TEMP/dayman-arch"
+          su builder -c "cd '$package_root' && makepkg --cleanbuild --noconfirm"
+
+      - name: Collect Arch release files
+        shell: bash
+        run: |
+          mkdir -p release/arch
+          cp "$RUNNER_TEMP"/dayman-arch/*.pkg.tar.zst release/arch/
+          (
+            cd release/arch
+            sha256sum *.pkg.tar.zst > SHA256SUMS.arch
+          )
+
+      - name: Upload Arch release files
+        uses: actions/upload-artifact@v4
+        with:
+          name: dayman-arch
+          path: release/arch/*
+          if-no-files-found: error
+          retention-days: 14
+
+  macos:
+    name: Package macOS
+    needs: prepare
+    runs-on: macos-latest
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Check out current release tooling
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          path: .dayman-release-tooling
+
+      - name: Update release tooling for an existing tag
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          cp \
+            .dayman-release-tooling/platform/macos/scripts/archive.sh \
+            platform/macos/scripts/archive.sh
+          cp \
+            .dayman-release-tooling/platform/macos/scripts/package-dmg.sh \
+            platform/macos/scripts/package-dmg.sh
+          cp \
+            .dayman-release-tooling/platform/macos/project.yml \
+            platform/macos/project.yml
+          cp \
+            .dayman-release-tooling/platform/macos/Configuration/Shared.xcconfig \
+            platform/macos/Configuration/Shared.xcconfig
+          chmod +x \
+            platform/macos/scripts/archive.sh \
+            platform/macos/scripts/package-dmg.sh
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install project generator
+        run: brew install xcodegen
+
+      - name: Build and ad-hoc sign macOS app
+        env:
+          DAYMAN_BUILD_NUMBER: ${{ github.run_number }}
+          DAYMAN_VERSION_NAME: ${{ needs.prepare.outputs.version }}
+        run: platform/macos/scripts/archive.sh
+
+      - name: Build direct-download DMG
+        run: platform/macos/scripts/package-dmg.sh
+
+      - name: Collect macOS release files
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          mkdir -p release/macos
+          filename="DayMan-${VERSION}-macOS.dmg"
+          cp platform/macos/build/DayMan.dmg "release/macos/$filename"
+          (
+            cd release/macos
+            shasum -a 256 "$filename" > "${filename}.sha256"
+          )
+
+      - name: Upload macOS release files
+        uses: actions/upload-artifact@v4
+        with:
+          name: dayman-macos
+          path: release/macos/*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish GitHub Release
+    needs:
+      - prepare
+      - linux
+      - arch
+      - android
+      - macos
+    if: >-
+      always() &&
+      needs.prepare.result == 'success' &&
+      needs.linux.result == 'success' &&
+      needs.arch.result == 'success' &&
+      (needs.android.result == 'success' || needs.android.result == 'skipped') &&
+      needs.macos.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Download packaged apps
+        uses: actions/download-artifact@v5
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create combined checksum file
+        shell: bash
+        working-directory: release-assets
+        run: |
+          find . -maxdepth 1 -type f \
+            ! -name "SHA256SUMS" \
+            ! -name "*.sha256" \
+            -printf "%f\0" |
+            sort -z |
+            xargs -0 sha256sum > SHA256SUMS
+
+      - name: Create or update GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" release-assets/* --clobber
+          else
+            gh release create "$RELEASE_TAG" release-assets/* \
+              --verify-tag \
+              --generate-notes \
+              --title "DayMan ${VERSION}"
+          fi

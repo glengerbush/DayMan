@@ -10,13 +10,14 @@ The code portions of this pathway are implemented:
   persistence bridge
 - Rolling 32-day native snapshot queue so widgets can advance at midnight
   without a server or background WebView
-- Capacitor Android host, Kotlin/Glance widget, scheduling, tests, signing
-  configuration, and direct APK/AAB build scripts
+- Capacitor Android host, Kotlin/Glance widget, scheduling, tests, passwordless
+  release signing, and a direct-install APK build
 - SwiftUI/WKWebView macOS host, WidgetKit extension, App Group storage,
-  XcodeGen project, tests, archive, notarization, and DMG scripts
+  XcodeGen project, tests, ad-hoc signing, and DMG scripts
 - Tauri Linux host, XDG state bridge, Plasma 6 plasmoid, GNOME Shell
   extension, Flatpak/native/AUR packaging definitions, installers, and tests
-- GitHub Actions checks for the web, Android, macOS, and Linux tracks
+- GitHub Actions checks for the web, Android, macOS, and Linux tracks, plus
+  tag-driven native package publishing to GitHub Releases
 
 Run the complete host-available validation with `npm run check:all`. Platform
 source and release instructions live under `platform/android`,
@@ -91,8 +92,8 @@ required. See `docs/clock-snapshot-contract.md`.
 
 | Platform | Full app package | Widget implementation | Distribution |
 | --- | --- | --- | --- |
-| Android | Capacitor shell around the Vite build | Kotlin Jetpack Glance `AppWidget` showing a rendered dial image; one `PendingIntent` opens the app | Signed Android App Bundle through Google Play, with APKs for direct testing |
-| macOS | Small SwiftUI app containing a bundled `WKWebView` build | SwiftUI WidgetKit extension using an App Group for location/snapshot data and `widgetURL` to open the app | Mac App Store, or signed and notarized app/DMG |
+| Android | Capacitor shell around the Vite build | Kotlin Jetpack Glance `AppWidget` showing a rendered dial image; one `PendingIntent` opens the app | Signed direct-install APK from GitHub Releases |
+| macOS | Small SwiftUI app containing a bundled `WKWebView` build | WidgetKit source is implemented, but its App Group state sharing requires Apple provisioning and remains unconfigured in the ad-hoc release | Ad-hoc-signed DMG from GitHub Releases; users clear quarantine before launch |
 | Linux | Tauri 2 shell around the Vite build | Plasma 6 plasmoid for KDE; separate GNOME Shell extension for a panel surface | Flatpak plus Tauri `.deb`, `.rpm`, AppImage, and an AUR package |
 
 ### Android
