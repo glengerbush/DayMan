@@ -107,10 +107,12 @@ assert(
   index.includes(`${expectedBase}registerSW.js`),
   'HTML service-worker registration does not use the deployment base'
 );
-assert(
-  generatedJavaScript.includes(`${expectedBase}moon-nearside.webp`),
-  'Moon texture URL does not use the deployment base'
-);
+for (const asset of ['moon-nearside.webp', 'data/zcta-2025.json']) {
+  assert(
+    generatedJavaScript.includes(`${expectedBase}${asset}`),
+    `${asset} URL does not use the deployment base`
+  );
+}
 await access(resolve(dist, '.nojekyll'));
 
 console.log(`PWA release verified for base ${expectedBase}`);
